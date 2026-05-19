@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static roomescape.config.TestFixture.futureReservationDate;
+import static roomescape.config.TestFixture.loginMember;
 import static roomescape.config.TestFixture.nextReservationDate;
 import static roomescape.config.TestFixture.reservationRequestBody;
 import static roomescape.config.TestFixture.reservationTimeRequest;
@@ -28,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
@@ -44,6 +46,7 @@ import roomescape.theme.service.ThemeService;
 @Transactional
 @AutoConfigureMockMvc
 @SpringBootTest
+@Sql("/member_register.sql")
 class ReservationControllerTest {
 
     private static final String RESERVATION_NAME = "봉구스";
@@ -83,6 +86,7 @@ class ReservationControllerTest {
 
         // when
         ResultActions result = mockMvc.perform(post("/reservations")
+                .with(loginMember())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)));
 
@@ -117,6 +121,7 @@ class ReservationControllerTest {
 
         // when
         ResultActions result = mockMvc.perform(patch("/reservations/{id}/schedule?name={name}", id, RESERVATION_NAME)
+                .with(loginMember())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(updateRequest)));
 
@@ -143,7 +148,8 @@ class ReservationControllerTest {
         postReservation(request);
 
         // when
-        ResultActions result = mockMvc.perform(get("/admin/reservations"));
+        ResultActions result = mockMvc.perform(get("/admin/reservations")
+                .with(loginMember()));
 
         // then
         result.andExpect(status().isOk())
@@ -167,8 +173,10 @@ class ReservationControllerTest {
         int id = postReservation(request);
 
         // when
-        ResultActions deleteResult = mockMvc.perform(delete("/reservations/{id}?name={name}", id, RESERVATION_NAME));
-        ResultActions findResult = mockMvc.perform(get("/admin/reservations"));
+        ResultActions deleteResult = mockMvc.perform(delete("/reservations/{id}?name={name}", id, RESERVATION_NAME)
+                .with(loginMember()));
+        ResultActions findResult = mockMvc.perform(get("/admin/reservations")
+                .with(loginMember()));
 
         // then
         deleteResult.andExpect(status().isNoContent());
@@ -197,8 +205,10 @@ class ReservationControllerTest {
         postReservation(request2);
 
         // when
-        ResultActions deleteResult = mockMvc.perform(delete("/reservations/{id}?name={name}", id, RESERVATION_NAME));
-        ResultActions findResult = mockMvc.perform(get("/admin/reservations"));
+        ResultActions deleteResult = mockMvc.perform(delete("/reservations/{id}?name={name}", id, RESERVATION_NAME)
+                .with(loginMember()));
+        ResultActions findResult = mockMvc.perform(get("/admin/reservations")
+                .with(loginMember()));
 
         // then
         deleteResult.andExpect(status().isNoContent());
@@ -221,6 +231,7 @@ class ReservationControllerTest {
 
         // when
         ResultActions result = mockMvc.perform(get("/reservations?name={name}", RESERVATION_NAME)
+                .with(loginMember())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)));
 
@@ -233,7 +244,8 @@ class ReservationControllerTest {
     void 존재하지_않는_예약을_삭제하면_404를_응답한다() throws Exception {
         // when
         ResultActions result = mockMvc.perform(
-                delete("/reservations/{id}?name={name}", NOT_FOUND_ID, RESERVATION_NAME));
+                delete("/reservations/{id}?name={name}", NOT_FOUND_ID, RESERVATION_NAME)
+                        .with(loginMember()));
 
         // then
         result.andExpect(status().isNotFound())
@@ -256,7 +268,8 @@ class ReservationControllerTest {
         int id = postReservation(request);
 
         // when
-        ResultActions result = mockMvc.perform(delete("/reservations/{id}?name={name}", id, OTHER_RESERVATION_NAME));
+        ResultActions result = mockMvc.perform(delete("/reservations/{id}?name={name}", id, OTHER_RESERVATION_NAME)
+                .with(loginMember()));
 
         // then
         result.andExpect(status().isForbidden())
@@ -280,6 +293,7 @@ class ReservationControllerTest {
 
         // when
         ResultActions result = mockMvc.perform(post("/reservations")
+                .with(loginMember())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)));
 
@@ -298,6 +312,7 @@ class ReservationControllerTest {
 
         // when
         ResultActions result = mockMvc.perform(post("/reservations")
+                .with(loginMember())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)));
 
@@ -308,6 +323,7 @@ class ReservationControllerTest {
 
     private int postReservation(Map<String, Object> request) throws Exception {
         MvcResult result = mockMvc.perform(post("/reservations")
+                        .with(loginMember())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())

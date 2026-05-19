@@ -4,6 +4,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static roomescape.config.TestFixture.loginMember;
 import static roomescape.config.TestFixture.themeRequestBody;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
@@ -21,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @AutoConfigureMockMvc
 @SpringBootTest
+@Sql("/member_register.sql")
 class AdminThemeControllerTest {
 
     private static final String THEME_NAME = "테마";
@@ -40,8 +43,9 @@ class AdminThemeControllerTest {
 
         // when
         ResultActions result = mockMvc.perform(post("/admin/themes")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)));
+                .with(loginMember())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)));
 
         // then
         result.andExpect(status().isCreated())
@@ -58,7 +62,8 @@ class AdminThemeControllerTest {
         int id = postTheme(request);
 
         // when
-        ResultActions result = mockMvc.perform(delete("/admin/themes/{id}", id));
+        ResultActions result = mockMvc.perform(delete("/admin/themes/{id}", id)
+                .with(loginMember()));
 
         // then
         result.andExpect(status().isNoContent());
@@ -66,6 +71,7 @@ class AdminThemeControllerTest {
 
     private int postTheme(Map<String, Object> request) throws Exception {
         MvcResult result = mockMvc.perform(post("/admin/themes")
+                        .with(loginMember())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())

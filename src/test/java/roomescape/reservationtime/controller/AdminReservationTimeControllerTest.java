@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static roomescape.config.TestFixture.loginMember;
 import static roomescape.config.TestFixture.reservationTimeRequestBody;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
@@ -26,6 +28,7 @@ import roomescape.common.exception.NotFoundException;
 @Transactional
 @AutoConfigureMockMvc
 @SpringBootTest
+@Sql("/member_register.sql")
 class AdminReservationTimeControllerTest {
 
     private static final String START_AT = "11:00";
@@ -45,6 +48,7 @@ class AdminReservationTimeControllerTest {
 
         // when
         ResultActions result = mockMvc.perform(post("/admin/times")
+                .with(loginMember())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)));
 
@@ -60,7 +64,8 @@ class AdminReservationTimeControllerTest {
         int id = postReservationTime(request);
 
         // when
-        ResultActions result = mockMvc.perform(delete("/admin/times/{id}", id));
+        ResultActions result = mockMvc.perform(delete("/admin/times/{id}", id)
+                .with(loginMember()));
 
         // then
         result.andExpect(status().isNoContent());
@@ -69,7 +74,8 @@ class AdminReservationTimeControllerTest {
     @Test
     void 존재하지_않는_예약_시간을_삭제하면_404를_응답한다() throws Exception {
         // when
-        ResultActions result = mockMvc.perform(delete("/admin/times/{id}", NOT_FOUND_ID));
+        ResultActions result = mockMvc.perform(delete("/admin/times/{id}", NOT_FOUND_ID)
+                .with(loginMember()));
 
         // then
         result.andExpect(status().isNotFound())
@@ -86,8 +92,9 @@ class AdminReservationTimeControllerTest {
 
         // when
         ResultActions result = mockMvc.perform(post("/admin/times")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)));
+                .with(loginMember())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)));
 
         // then
         result.andExpect(status().isBadRequest())
@@ -96,6 +103,7 @@ class AdminReservationTimeControllerTest {
 
     private int postReservationTime(Map<String, Object> request) throws Exception {
         MvcResult result = mockMvc.perform(post("/admin/times")
+                        .with(loginMember())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())

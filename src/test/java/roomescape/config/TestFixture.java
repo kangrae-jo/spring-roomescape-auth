@@ -4,6 +4,9 @@ import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Map;
+import java.util.Objects;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
+import roomescape.member.entity.Member;
 import roomescape.reservation.entity.Reservation;
 import roomescape.reservation.payload.ReservationRequest;
 import roomescape.reservation.payload.ReservationUpdateRequest;
@@ -104,6 +107,15 @@ public final class TestFixture {
 
     public static LocalDate pastReservationDate(Clock clock) {
         return LocalDate.now(clock).minusDays(1);
+    }
+
+    public static RequestPostProcessor loginMember() {
+        return request -> {
+            Objects.requireNonNull(request.getSession()).setAttribute(
+                    "loginMember", Member.of(1L, "milan")
+            );
+            return request;
+        };
     }
 
 }
