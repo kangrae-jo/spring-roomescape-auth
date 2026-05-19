@@ -50,7 +50,7 @@ import roomescape.theme.service.ThemeService;
 class ReservationControllerTest {
 
     private static final String RESERVATION_NAME = "봉구스";
-    private static final String OTHER_RESERVATION_NAME = "밀란";
+    private static final String LOGIN_MEMBER_NAME = "milan";
     private static final String THEME_NAME = "테마";
     private static final LocalTime DEFAULT_START_AT = LocalTime.of(10, 0);
     private static final LocalTime UPDATED_START_AT = LocalTime.of(11, 0);
@@ -107,7 +107,7 @@ class ReservationControllerTest {
         Theme theme = themeService.save(themeRequest(THEME_NAME));
         LocalDate reservationDate = futureReservationDate(clock);
         Map<String, Object> request = reservationRequestBody(
-                RESERVATION_NAME,
+                LOGIN_MEMBER_NAME,
                 reservationDate,
                 reservationTime1.getId(),
                 theme.getId()
@@ -120,7 +120,7 @@ class ReservationControllerTest {
         );
 
         // when
-        ResultActions result = mockMvc.perform(patch("/reservations/{id}/schedule?name={name}", id, RESERVATION_NAME)
+        ResultActions result = mockMvc.perform(patch("/reservations/{id}/schedule", id)
                 .with(loginMember())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(updateRequest)));
@@ -128,7 +128,7 @@ class ReservationControllerTest {
         // then
         result.andExpect(status().isOk())
                 .andExpect(header().string("Location", containsString("/reservations/" + id)))
-                .andExpect(jsonPath("$.name").value(RESERVATION_NAME))
+                .andExpect(jsonPath("$.name").value(LOGIN_MEMBER_NAME))
                 .andExpect(jsonPath("$.date").value(reservationDate.plusDays(1).toString()))
                 .andExpect(jsonPath("$.time.id").value(reservationTime2.getId().intValue()));
     }
@@ -165,7 +165,7 @@ class ReservationControllerTest {
         ReservationTime reservationTime = reservationTimeService.save(reservationTimeRequest(DEFAULT_START_AT));
         Theme theme = themeService.save(themeRequest(THEME_NAME));
         Map<String, Object> request = reservationRequestBody(
-                RESERVATION_NAME,
+                LOGIN_MEMBER_NAME,
                 futureReservationDate(clock),
                 reservationTime.getId(),
                 theme.getId()
@@ -173,7 +173,7 @@ class ReservationControllerTest {
         int id = postReservation(request);
 
         // when
-        ResultActions deleteResult = mockMvc.perform(delete("/reservations/{id}?name={name}", id, RESERVATION_NAME)
+        ResultActions deleteResult = mockMvc.perform(delete("/reservations/{id}", id)
                 .with(loginMember()));
         ResultActions findResult = mockMvc.perform(get("/admin/reservations")
                 .with(loginMember()));
@@ -190,13 +190,13 @@ class ReservationControllerTest {
         ReservationTime reservationTime = reservationTimeService.save(reservationTimeRequest(DEFAULT_START_AT));
         Theme theme = themeService.save(themeRequest(THEME_NAME));
         Map<String, Object> request1 = reservationRequestBody(
-                RESERVATION_NAME,
+                LOGIN_MEMBER_NAME,
                 futureReservationDate(clock),
                 reservationTime.getId(),
                 theme.getId()
         );
         Map<String, Object> request2 = reservationRequestBody(
-                RESERVATION_NAME,
+                LOGIN_MEMBER_NAME,
                 nextReservationDate(clock),
                 reservationTime.getId(),
                 theme.getId()
@@ -205,7 +205,7 @@ class ReservationControllerTest {
         postReservation(request2);
 
         // when
-        ResultActions deleteResult = mockMvc.perform(delete("/reservations/{id}?name={name}", id, RESERVATION_NAME)
+        ResultActions deleteResult = mockMvc.perform(delete("/reservations/{id}", id)
                 .with(loginMember()));
         ResultActions findResult = mockMvc.perform(get("/admin/reservations")
                 .with(loginMember()));
@@ -222,7 +222,7 @@ class ReservationControllerTest {
         ReservationTime reservationTime = reservationTimeService.save(reservationTimeRequest(DEFAULT_START_AT));
         Theme theme = themeService.save(themeRequest(THEME_NAME));
         Map<String, Object> request = reservationRequestBody(
-                RESERVATION_NAME,
+                LOGIN_MEMBER_NAME,
                 futureReservationDate(clock),
                 reservationTime.getId(),
                 theme.getId()
@@ -230,21 +230,19 @@ class ReservationControllerTest {
         postReservation(request);
 
         // when
-        ResultActions result = mockMvc.perform(get("/reservations?name={name}", RESERVATION_NAME)
-                .with(loginMember())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)));
+        ResultActions result = mockMvc.perform(get("/reservations")
+                .with(loginMember()));
 
         // then
         result.andExpect(status().isOk())
-                .andExpect(jsonPath("$[*].name", hasItem(RESERVATION_NAME)));
+                .andExpect(jsonPath("$[*].name", hasItem(LOGIN_MEMBER_NAME)));
     }
 
     @Test
     void 존재하지_않는_예약을_삭제하면_404를_응답한다() throws Exception {
         // when
         ResultActions result = mockMvc.perform(
-                delete("/reservations/{id}?name={name}", NOT_FOUND_ID, RESERVATION_NAME)
+                delete("/reservations/{id}", NOT_FOUND_ID)
                         .with(loginMember()));
 
         // then
@@ -268,7 +266,7 @@ class ReservationControllerTest {
         int id = postReservation(request);
 
         // when
-        ResultActions result = mockMvc.perform(delete("/reservations/{id}?name={name}", id, OTHER_RESERVATION_NAME)
+        ResultActions result = mockMvc.perform(delete("/reservations/{id}", id)
                 .with(loginMember()));
 
         // then

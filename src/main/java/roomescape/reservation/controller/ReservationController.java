@@ -12,8 +12,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import roomescape.auth.LoginMember;
+import roomescape.member.entity.Member;
 import roomescape.reservation.entity.Reservation;
 import roomescape.reservation.payload.ReservationRequest;
 import roomescape.reservation.payload.ReservationResponse;
@@ -43,11 +44,11 @@ public class ReservationController {
 
     @PatchMapping("/{id}/schedule")
     public ResponseEntity<ReservationResponse> updateReservationSchedule(
+            @LoginMember Member member,
             @PathVariable Long id,
-            @RequestParam(name = "name") String name,
             @Valid @RequestBody ReservationUpdateRequest request
     ) {
-        Reservation reservation = reservationService.update(id, name, request);
+        Reservation reservation = reservationService.update(id, member.getName(), request);
         URI location = URI.create("/reservations/" + reservation.getId());
 
         return ResponseEntity.ok().location(location)
@@ -56,9 +57,9 @@ public class ReservationController {
 
     @GetMapping
     public ResponseEntity<List<ReservationResponse>> getMyReservations(
-            @RequestParam(name = "name") String name
+            @LoginMember Member member
     ) {
-        List<ReservationResponse> reservationResponses = reservationService.findAllByName(name).stream()
+        List<ReservationResponse> reservationResponses = reservationService.findAllByName(member.getName()).stream()
                 .map(ReservationResponse::from)
                 .toList();
 
@@ -68,10 +69,10 @@ public class ReservationController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteReservation(
-            @PathVariable Long id,
-            @RequestParam(name = "name") String name
+            @LoginMember Member member,
+            @PathVariable Long id
     ) {
-        reservationService.deleteByIdAndName(id, name);
+        reservationService.deleteByIdAndName(id, member.getName());
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
