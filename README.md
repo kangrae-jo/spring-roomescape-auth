@@ -49,25 +49,29 @@
 
 ### 예약 서비스는 지금까지 이름을 입력받아 사용자를 구분했다. 이제 웹 사용자는 로그인한 뒤 예약 서비스를 사용해야 한다. 이름 입력 방식은 작은 서비스에서는 단순하고 편리했지만, 사용자가 늘어나면 한계가 드러난다. 다른 사람의 이름을 입력할 수도 있고, 같은 이름을 가진 사용자가 있을 수도 있다. 예약을 만든 사람이 누구인지 신뢰하기 어렵다. 1단계에서는 이름 입력 기반 예약 흐름을 로그인 사용자 기반 예약 흐름으로 바꾼다.
 
-- [ ] 로그인
-    - [ ] 사용자는 로그인할 수 있다.
-    - [ ] 로그인에 성공하면 이후 요청에서 같은 사용자를 식별할 수 있어야 한다.
-    - [ ] 로그인에 실패하면 적절한 응답을 반환한다.
+- [x] 로그인
+    - [x] 사용자는 로그인할 수 있다.
+    - [x] 로그인에 성공하면 이후 요청에서 같은 사용자를 식별할 수 있어야 한다.
+    - [x] 로그인에 실패하면 적절한 응답을 반환한다.
+
 - [ ] 예약 생성
-    - [ ] 로그인한 사용자는 예약을 생성할 수 있다.
-    - [ ] 예약 생성 시 요청으로 받은 이름이 아니라 로그인한 사용자를 기준으로 예약을 만든다.
+    - [ ] 로그인한 사용자 예약을 생성할 수 있다.
+    - [x] 예약 생성 시 요청으로 받은 이름이 아니라 로그인한 사용자를 기준으로 예약을 만든다.
     - [ ] 로그인하지 않은 사용자는 예약을 생성할 수 없다.
+
 - [ ] 예약 조회
-    - [ ] 로그인한 사용자는 자신의 예약을 조회할 수 있다.
-    - [ ] 로그인하지 않은 사용자는 인증이 필요한 예약 조회 기능을 사용할 수 없다.
+    - [x] 로그인한 사용자는 자신의 예약을 조회할 수 있다.
+    - [x] 로그인하지 않은 사용자는 인증이 필요한 예약 조회 기능을 사용할 수 없다.
+
 - [ ] 인증 공통 처리
-    - [ ] 로그인 여부 확인 로직을 컨트롤러마다 반복하지 않는다.
+    - [x] 로그인 여부 확인 로직을 컨트롤러마다 반복하지 않는다.
     - [ ] 인증이 필요한 API와 필요하지 않은 API를 구분한다.
-    - [ ] 인증 실패 시 일관된 응답을 반환한다.
+    - [x] 인증 실패 시 일관된 응답을 반환한다.
+
 - [ ] 구현 조건
-    - [ ] Spring Security를 사용하지 않는다.
-    - [ ] 세션 또는 직접 구현한 인증 흐름을 사용할 수 있다.
-    - [ ] 인증에 필요한 공통 처리는 Interceptor, ArgumentResolver 등 적절한 도구를 사용해 분리한다.
+    - [x] Spring Security를 사용하지 않는다.
+    - [x] 세션 또는 직접 구현한 인증 흐름을 사용할 수 있다.
+    - [x] 인증에 필요한 공통 처리는 Interceptor, ArgumentResolver 등 적절한 도구를 사용해 분리한다.
     - [ ] 컨트롤러는 가능한 한 로그인 사용자 정보를 직접 꺼내지 않는다.
 
 # 💻 기능 요구 사항 (member)
@@ -243,24 +247,24 @@ Content-Type: application/json
 
 # 📝API 명세
 
-| 기능           | 메서드 / URL                                    | 요청 본문                               | 응답 본문                                                                                               |
-|--------------|----------------------------------------------|-------------------------------------|-----------------------------------------------------------------------------------------------------|
-| (어드민)        |                                              |
-| 모든 예약 조회     | `GET /admin/reservations`                    |                                     | `[{id, name, date, time:{id, startAt}, theme:{id, name, description, thumbnailUrl, runtime}}, ...]` |
-| 예약 삭제        | `DELETE /admin/reservations/{id}`            |                                     |                                                                                                     |
-| 시간 추가        | `POST /admin/times`                          | `{startAt}`                         | `{id, startAt}`                                                                                     |
-| 시간 삭제        | `DELETE /admin/times/{id}`                   |                                     |                                                                                                     |
-| 테마 추가        | `POST /admin/themes`                         | `{name, description, thumbnailUrl}` | `{id, name, description, thumbnailUrl, runtime}`                                                    |
-| 테마 삭제        | `DELETE /admin/themes/{id}`                  |                                     |                                                                                                     |
-| (유저)         |                                              |                                     |
-| 예약 추가        | `POST /reservations`                         | `{name, date, timeId, themeId}`     | `{id, name, date, time:{id, startAt}, theme:{id, name, description, thumbnailUrl, runtime}}`        |
-| 예약 시간 수정     | `PATCH /reservations/{id}/schedule?name={}`  | `{date, timeId}`                    | `{id, name, date, time:{id, startAt}, theme:{id, name, description, thumbnailUrl, runtime}}`        |
-| 이름으로 예약 조회   | `GET /reservations?name={}`                  |                                     | `[{id, name, date, time:{id, startAt}, theme:{id, name, description, thumbnailUrl, runtime}}, ...]` |
-| 본인의 예약 삭제    | `DELETE /reservations/{id}?name={}`          |                                     |                                                                                                     |
-| 시간 조회        | `GET /times`                                 |                                     | `[{id, startAt}, ...]`                                                                              |
-| 예약 가능한 시간 조회 | `GET /times/available?date={}&themeId={}`    |                                     | `[{id, startAt}, ...]`                                                                              |
-| 테마 조회        | `GET /themes`                                |                                     | `[{id, name, description, thumbnailUrl, runtime}, ...]`                                             |
-| 인기 있는 테마 조회  | `GET /themes/popular?recentDays={}&limit={}` |                                     | `[{id, name, description, thumbnailUrl, runtime}, ...]`                                             |
+| auth   | 기능           | 메서드 / URL                                    | 요청 본문                               | 응답 본문                                                                                               |
+|--------|--------------|----------------------------------------------|-------------------------------------|-----------------------------------------------------------------------------------------------------|
+|        | (어드민)        |                                              |
+| admin  | 모든 예약 조회     | `GET /admin/reservations`                    |                                     | `[{id, name, date, time:{id, startAt}, theme:{id, name, description, thumbnailUrl, runtime}}, ...]` |
+| admin  | 예약 삭제        | `DELETE /admin/reservations/{id}`            |                                     |                                                                                                     |
+| admin  | 시간 추가        | `POST /admin/times`                          | `{startAt}`                         | `{id, startAt}`                                                                                     |
+| admin  | 시간 삭제        | `DELETE /admin/times/{id}`                   |                                     |                                                                                                     |
+| admin  | 테마 추가        | `POST /admin/themes`                         | `{name, description, thumbnailUrl}` | `{id, name, description, thumbnailUrl, runtime}`                                                    |
+| admin  | 테마 삭제        | `DELETE /admin/themes/{id}`                  |                                     |                                                                                                     |
+|        | (유저)         |                                              |                                     |
+| member | 예약 추가        | `POST /reservations`                         | `{name, date, timeId, themeId}`     | `{id, name, date, time:{id, startAt}, theme:{id, name, description, thumbnailUrl, runtime}}`        |
+| member | 예약 시간 수정     | `PATCH /reservations/{id}/schedule`          | `{date, timeId}`                    | `{id, name, date, time:{id, startAt}, theme:{id, name, description, thumbnailUrl, runtime}}`        |
+| member | 예약 조회        | `GET /reservations`                          |                                     | `[{id, name, date, time:{id, startAt}, theme:{id, name, description, thumbnailUrl, runtime}}, ...]` |
+| member | 예약 삭제        | `DELETE /reservations/{id}`                  |                                     |                                                                                                     |
+| none   | 시간 조회        | `GET /times`                                 |                                     | `[{id, startAt}, ...]`                                                                              |
+| none   | 예약 가능한 시간 조회 | `GET /times/available?date={}&themeId={}`    |                                     | `[{id, startAt}, ...]`                                                                              |
+| none   | 테마 조회        | `GET /themes`                                |                                     | `[{id, name, description, thumbnailUrl, runtime}, ...]`                                             |
+| none   | 인기 있는 테마 조회  | `GET /themes/popular?recentDays={}&limit={}` |                                     | `[{id, name, description, thumbnailUrl, runtime}, ...]`                                             |
 
 # 📝 에러
 
