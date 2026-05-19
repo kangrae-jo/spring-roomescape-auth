@@ -195,6 +195,37 @@ select:disabled {
     font-size: 20px;
 }
 
+.auth-panel {
+    margin-bottom: 24px;
+}
+
+.auth-head {
+    margin-bottom: 12px;
+}
+
+.auth-status {
+    min-height: 32px;
+    padding: 6px 10px;
+    border: 1px solid #d8e0e8;
+    border-radius: 6px;
+    background: #f8fafc;
+    color: #536271;
+    font-weight: 800;
+}
+
+.auth-status.signed-in {
+    border-color: #b9e2d3;
+    background: #eefaf6;
+    color: #0f6b4f;
+}
+
+.auth-forms {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+    gap: 12px;
+    align-items: end;
+}
+
 .toolbar,
 .grid-form {
     display: grid;
@@ -218,7 +249,7 @@ select:disabled {
 }
 
 .toolbar.mine-toolbar {
-    grid-template-columns: minmax(180px, 320px) auto;
+    grid-template-columns: auto;
     justify-content: start;
 }
 
@@ -240,7 +271,7 @@ select:disabled {
 }
 
 .reservation-form {
-    grid-template-columns: minmax(180px, 320px) auto;
+    grid-template-columns: auto;
     justify-content: start;
     margin-top: 16px;
 }
@@ -501,6 +532,7 @@ th {
 
     .metrics,
     .theme-grid,
+    .auth-forms,
     .toolbar,
     .toolbar.compact,
     .toolbar.mine-toolbar,

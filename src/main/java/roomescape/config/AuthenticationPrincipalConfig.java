@@ -12,6 +12,15 @@ import roomescape.member.repository.MemberRepository;
 @Configuration
 public class AuthenticationPrincipalConfig implements WebMvcConfigurer {
 
+    private static final String[] STATIC_RESOURCES = {
+            "/",
+            "/index.html",
+            "/app.js",
+            "/styles.css",
+            "/favicon.ico",
+            "/error"
+    };
+
     private final LoginCheckInterceptor loginCheckInterceptor;
     private final MemberRepository memberRepository;
 
@@ -27,6 +36,7 @@ public class AuthenticationPrincipalConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(loginCheckInterceptor)
                 .addPathPatterns("/**")
+                .excludePathPatterns(STATIC_RESOURCES)
                 .excludePathPatterns(
                         "/auth/register",
                         "/auth/login",

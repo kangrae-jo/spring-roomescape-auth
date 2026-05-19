@@ -7,7 +7,8 @@ const state = {
   editableTimesByReservationId: {},
   reservationDraftsById: {},
   popularThemes: [],
-  myReservationName: "",
+  isAuthenticated: false,
+  currentMemberName: "",
   availability: {
     date: "",
     themeId: "",
@@ -15,15 +16,18 @@ const state = {
 };
 
 const DEFAULT_THEME_IMAGE = "https://avatars.githubusercontent.com/u/177727543?v=4&size=64";
+const AUTH_MEMBER_NAME_KEY = "roomescape.memberName";
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => Array.from(document.querySelectorAll(selector));
 let toastTimer;
 
 document.addEventListener("DOMContentLoaded", async () => {
+  restoreAuthState();
   setToday();
   renderTimeSelects();
   bindEvents();
+  renderAuthState();
   try {
     await loadAll();
   } catch (error) {
@@ -42,6 +46,18 @@ function setToday() {
 }
 
 function bindEvents() {
+  $("#login-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    await safely("#auth-message", login);
+  });
+
+  $("#register-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    await safely("#auth-message", register);
+  });
+
+  $("#logout-button").addEventListener("click", () => safely("#auth-message", logout));
+
   $("#availability-form").addEventListener("submit", async (event) => {
     event.preventDefault();
     await safely("#availability-message", loadAvailableTimes);
@@ -91,10 +107,12 @@ function bindEvents() {
 
   $("#reservation-date").addEventListener("change", clearAvailabilitySelection);
   $("#reservation-theme").addEventListener("change", clearAvailabilitySelection);
-  $("#reservation-name").addEventListener("input", () => clearInlineMessage("#reservation-message"));
+  $("#login-name").addEventListener("input", () => clearInlineMessage("#auth-message"));
+  $("#login-password").addEventListener("input", () => clearInlineMessage("#auth-message"));
+  $("#register-name").addEventListener("input", () => clearInlineMessage("#auth-message"));
+  $("#register-password").addEventListener("input", () => clearInlineMessage("#auth-message"));
   $("#popular-recent-days").addEventListener("input", () => clearInlineMessage("#popular-theme-message"));
   $("#popular-limit").addEventListener("input", () => clearInlineMessage("#popular-theme-message"));
-  $("#my-reservation-name").addEventListener("input", () => clearInlineMessage("#my-reservation-message"));
   $("#theme-name").addEventListener("input", () => clearInlineMessage("#theme-message"));
   $("#theme-description").addEventListener("input", () => clearInlineMessage("#theme-message"));
   $("#theme-thumbnail").addEventListener("input", () => clearInlineMessage("#theme-message"));
@@ -103,12 +121,27 @@ function bindEvents() {
 }
 
 async function loadAll() {
-  await Promise.all([loadReservations(), loadThemes(), loadTimes(), loadPopularThemes()]);
+  await Promise.all([loadThemes(), loadTimes(), loadPopularThemes()]);
+  if (state.isAuthenticated) {
+    await Promise.all([loadReservations(), loadMyReservations({ quiet: true })]);
+  } else {
+    state.reservations = [];
+    state.myReservations = [];
+    renderReservations();
+    renderMyReservations();
+  }
   renderHome();
   renderReservationOptions();
 }
 
 async function loadReservations() {
+  if (!state.isAuthenticated) {
+    state.reservations = [];
+    renderReservations();
+    renderHome();
+    throw new Error("로그인이 필요합니다.");
+  }
+
   state.reservations = await request("/admin/reservations");
   renderReservations();
   renderHome();
@@ -147,8 +180,84 @@ async function loadPopularThemes() {
   renderPopularThemes();
 }
 
+function restoreAuthState() {
+  const memberName = sessionStorage.getItem(AUTH_MEMBER_NAME_KEY);
+  if (!memberName) {
+    return;
+  }
+
+  state.isAuthenticated = true;
+  state.currentMemberName = memberName;
+}
+
+async function register() {
+  const name = $("#register-name").value.trim();
+  const password = $("#register-password").value;
+  if (!name || !password) {
+    throw new Error("이름과 비밀번호를 입력해주세요.");
+  }
+
+  await request("/auth/register", {
+    method: "POST",
+    body: JSON.stringify({ name, password }),
+  });
+  await loginWithCredentials(name, password);
+  $("#register-form").reset();
+  showInlineMessage("#auth-message", "회원가입 후 로그인되었습니다.", false);
+}
+
+async function login() {
+  const name = $("#login-name").value.trim();
+  const password = $("#login-password").value;
+  if (!name || !password) {
+    throw new Error("이름과 비밀번호를 입력해주세요.");
+  }
+
+  await loginWithCredentials(name, password);
+  $("#login-form").reset();
+  showInlineMessage("#auth-message", "로그인되었습니다.", false);
+}
+
+async function loginWithCredentials(name, password) {
+  await request("/auth/login", {
+    method: "POST",
+    body: JSON.stringify({ name, password }),
+  });
+  setAuthenticated(name);
+  await loadAll();
+}
+
+async function logout() {
+  await request("/auth/logout", { method: "POST" });
+  setUnauthenticated();
+  await loadAll();
+  showInlineMessage("#auth-message", "로그아웃되었습니다.", false);
+}
+
+function setAuthenticated(name) {
+  state.isAuthenticated = true;
+  state.currentMemberName = name;
+  sessionStorage.setItem(AUTH_MEMBER_NAME_KEY, name);
+  renderAuthState();
+}
+
+function setUnauthenticated() {
+  state.isAuthenticated = false;
+  state.currentMemberName = "";
+  state.reservations = [];
+  state.myReservations = [];
+  state.editableTimesByReservationId = {};
+  state.reservationDraftsById = {};
+  sessionStorage.removeItem(AUTH_MEMBER_NAME_KEY);
+  renderAuthState();
+}
+
 async function createReservation() {
   const { date, themeId } = state.availability;
+  if (!state.isAuthenticated) {
+    throw new Error("로그인이 필요합니다.");
+  }
+
   if (!date || !themeId) {
     throw new Error("가능 시간을 먼저 조회해주세요.");
   }
@@ -158,7 +267,6 @@ async function createReservation() {
   }
 
   const payload = {
-    name: $("#reservation-name").value.trim(),
     date,
     timeId: Number($("#selected-time").value),
     themeId: Number(themeId),
@@ -174,9 +282,7 @@ async function createReservation() {
   $("#reservation-theme").value = "";
   clearAvailabilitySelection();
   await loadReservations();
-  if (state.myReservationName && state.myReservationName === payload.name.trim()) {
-    await loadMyReservations({ quiet: true });
-  }
+  await loadMyReservations({ quiet: true });
   showToast("예약이 생성되었습니다.");
 }
 
@@ -216,7 +322,7 @@ async function deleteReservation(id) {
   await safely("#admin-reservation-message", async () => {
     await request(`/admin/reservations/${id}`, { method: "DELETE" });
     await loadReservations();
-    if (state.myReservationName) {
+    if (state.isAuthenticated) {
       await loadMyReservations({ quiet: true });
     }
     showToast("예약이 취소되었습니다.");
@@ -240,14 +346,15 @@ async function deleteTime(id) {
 }
 
 async function loadMyReservations(options = {}) {
-  const name = $("#my-reservation-name").value.trim() || state.myReservationName;
-  if (!name) {
-    throw new Error("예약자 이름을 입력해주세요.");
+  if (!state.isAuthenticated) {
+    state.myReservations = [];
+    state.editableTimesByReservationId = {};
+    state.reservationDraftsById = {};
+    renderMyReservations();
+    throw new Error("로그인이 필요합니다.");
   }
 
-  state.myReservationName = name;
-  $("#my-reservation-name").value = name;
-  state.myReservations = await request(`/reservations?name=${encodeURIComponent(name)}`);
+  state.myReservations = await request("/reservations");
   state.editableTimesByReservationId = {};
   state.reservationDraftsById = {};
 
@@ -259,7 +366,7 @@ async function loadMyReservations(options = {}) {
 
   renderMyReservations();
   if (!options.quiet) {
-    showToast(`${name}님의 예약 ${state.myReservations.length}건을 조회했습니다.`);
+    showToast(`내 예약 ${state.myReservations.length}건을 조회했습니다.`);
   }
 }
 
@@ -368,12 +475,7 @@ async function handleMyReservationClick(event) {
       return;
     }
 
-    const requesterName = $("#my-reservation-name").value.trim() || state.myReservationName;
-    if (!requesterName) {
-      throw new Error("예약자 이름을 입력해주세요.");
-    }
-
-    await request(`/reservations/${reservation.id}?name=${encodeURIComponent(requesterName)}`, { method: "DELETE" });
+    await request(`/reservations/${reservation.id}`, { method: "DELETE" });
     await Promise.all([loadReservations(), loadMyReservations({ quiet: true })]);
     showToast("예약이 취소되었습니다.");
   });
@@ -384,6 +486,7 @@ async function request(path, options = {}) {
   delete fetchOptions.quiet;
 
   const response = await fetch(path, {
+    credentials: "same-origin",
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",
@@ -392,6 +495,9 @@ async function request(path, options = {}) {
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      setUnauthenticated();
+    }
     throw new Error(await readErrorMessage(response));
   }
 
@@ -399,7 +505,17 @@ async function request(path, options = {}) {
     return null;
   }
 
-  return response.json();
+  const text = await response.text();
+  if (!text) {
+    return null;
+  }
+
+  const contentType = response.headers.get("Content-Type") ?? "";
+  if (contentType.includes("application/json")) {
+    return JSON.parse(text);
+  }
+
+  return text;
 }
 
 async function readErrorMessage(response) {
@@ -430,6 +546,18 @@ function route() {
   $$(".tabs a").forEach((link) => {
     link.classList.toggle("active", link.dataset.route === pageName);
   });
+}
+
+function renderAuthState() {
+  const status = $("#auth-status");
+  status.textContent = state.isAuthenticated
+    ? `${state.currentMemberName}님 로그인 중`
+    : "로그인하지 않음";
+  status.classList.toggle("signed-in", state.isAuthenticated);
+
+  $("#login-form").hidden = state.isAuthenticated;
+  $("#register-form").hidden = state.isAuthenticated;
+  $("#logout-button").hidden = !state.isAuthenticated;
 }
 
 function renderHome() {
@@ -524,6 +652,11 @@ function clearAvailabilitySelection() {
 }
 
 function renderReservations() {
+  if (!state.isAuthenticated) {
+    $("#reservation-rows").innerHTML = `<tr><td colspan="6" class="empty">로그인하면 예약 목록이 표시됩니다.</td></tr>`;
+    return;
+  }
+
   $("#reservation-rows").innerHTML = state.reservations.length
     ? state.reservations.map((reservation) => `
         <tr>
@@ -541,14 +674,14 @@ function renderReservations() {
 function renderMyReservations() {
   const container = $("#my-reservation-list");
 
-  if (!state.myReservationName) {
-    container.innerHTML = `<p class="empty inline">이름을 입력하면 예약 내역이 표시됩니다.</p>`;
+  if (!state.isAuthenticated) {
+    container.innerHTML = `<p class="empty inline">로그인하면 예약 내역이 표시됩니다.</p>`;
     return;
   }
 
   container.innerHTML = state.myReservations.length
     ? state.myReservations.map(myReservationItem).join("")
-    : `<p class="empty inline">${escapeHtml(state.myReservationName)}님의 예약이 없습니다.</p>`;
+    : `<p class="empty inline">내 예약이 없습니다.</p>`;
 }
 
 function myReservationItem(reservation) {
