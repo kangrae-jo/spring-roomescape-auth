@@ -1,9 +1,9 @@
-package roomescape.auth.repository;
+package roomescape.member.repository;
 
 import java.util.Optional;
-import roomescape.auth.entity.Member;
+import roomescape.member.entity.Member;
 
-public interface AuthRepository {
+public interface MemberRepository {
 
     Member save(Member member);
 

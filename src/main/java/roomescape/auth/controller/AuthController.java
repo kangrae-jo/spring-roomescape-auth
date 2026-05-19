@@ -8,10 +8,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import roomescape.auth.entity.Member;
 import roomescape.auth.payload.LoginRequest;
 import roomescape.auth.payload.RegisterMemberRequest;
 import roomescape.auth.service.AuthService;
+import roomescape.member.entity.Member;
 
 @RestController
 @RequestMapping("/auth")

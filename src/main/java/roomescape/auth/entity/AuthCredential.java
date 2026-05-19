@@ -2,24 +2,24 @@ package roomescape.auth.entity;
 
 import java.util.Objects;
 
-public class Member {
+public class AuthCredential {
 
     private final Long id;
-    private final String name;
+    private final Long memberId;
     private final String password;
 
-    private Member(Long id, String name, String password) {
+    private AuthCredential(Long id, Long memberId, String password) {
         this.id = id;
-        this.name = name;
+        this.memberId = memberId;
         this.password = password;
     }
 
-    public static Member create(String name, String password) {
-        return new Member(null, name, password);
+    public static AuthCredential create(Long memberId, String password) {
+        return new AuthCredential(null, memberId, password);
     }
 
-    public static Member of(Long id, String name, String password) {
-        return new Member(id, name, password);
+    public static AuthCredential of(Long id, Long memberId, String password) {
+        return new AuthCredential(id, memberId, password);
     }
 
     public boolean hasPassword(String password) {
@@ -30,8 +30,8 @@ public class Member {
         return id;
     }
 
-    public String getName() {
-        return name;
+    public Long getMemberId() {
+        return memberId;
     }
 
     public String getPassword() {
@@ -46,8 +46,8 @@ public class Member {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        Member member = (Member) o;
-        return id != null && Objects.equals(id, member.id);
+        AuthCredential that = (AuthCredential) o;
+        return id != null && Objects.equals(id, that.id);
     }
 
     @Override

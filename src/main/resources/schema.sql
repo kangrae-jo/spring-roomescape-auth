@@ -19,11 +19,20 @@ CREATE TABLE IF NOT EXISTS theme
 
 CREATE TABLE IF NOT EXISTS member
 (
-    id       BIGINT       NOT NULL AUTO_INCREMENT,
-    name     VARCHAR(255) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
+    id   BIGINT       NOT NULL AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL UNIQUE,
 
     PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS auth_credential
+(
+    id        BIGINT       NOT NULL AUTO_INCREMENT,
+    member_id BIGINT       NOT NULL UNIQUE,
+    password  VARCHAR(255) NOT NULL,
+
+    PRIMARY KEY (id),
+    FOREIGN KEY (member_id) REFERENCES member (id)
 );
 
 CREATE TABLE IF NOT EXISTS reservation
