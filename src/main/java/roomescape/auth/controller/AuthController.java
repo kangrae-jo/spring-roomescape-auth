@@ -17,6 +17,8 @@ import roomescape.member.entity.Member;
 @RequestMapping("/auth")
 public class AuthController {
 
+    private static final String LOGIN_MEMBER_ID = "loginMemberId";
+
     private final AuthService authService;
 
     public AuthController(AuthService authService) {
@@ -39,7 +41,7 @@ public class AuthController {
             HttpSession session
     ) {
         Member member = authService.login(request);
-        session.setAttribute("loginMember", member);
+        session.setAttribute(LOGIN_MEMBER_ID, member.getId());
 
         return ResponseEntity.ok().build();
     }

@@ -1,17 +1,26 @@
 package roomescape.config;
 
+import java.util.List;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import roomescape.auth.LoginCheckInterceptor;
+import roomescape.auth.LoginMemberArgumentResolver;
+import roomescape.member.repository.MemberRepository;
 
 @Configuration
 public class AuthenticationPrincipalConfig implements WebMvcConfigurer {
 
     private final LoginCheckInterceptor loginCheckInterceptor;
+    private final MemberRepository memberRepository;
 
-    public AuthenticationPrincipalConfig(LoginCheckInterceptor loginCheckInterceptor) {
+    public AuthenticationPrincipalConfig(
+            LoginCheckInterceptor loginCheckInterceptor,
+            MemberRepository memberRepository
+    ) {
         this.loginCheckInterceptor = loginCheckInterceptor;
+        this.memberRepository = memberRepository;
     }
 
     @Override
@@ -24,6 +33,11 @@ public class AuthenticationPrincipalConfig implements WebMvcConfigurer {
                         "/times/**",
                         "/themes/**"
                 );
+    }
+
+    @Override
+    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+        resolvers.add(new LoginMemberArgumentResolver(memberRepository));
     }
 
 }

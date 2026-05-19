@@ -46,6 +46,13 @@ public class JdbcMemberRepository implements MemberRepository {
     }
 
     @Override
+    public Optional<Member> findById(Long id) {
+        String sql = "SELECT id, name FROM member WHERE id = ?";
+        List<Member> result = jdbcTemplate.query(sql, memberRowMapper, id);
+        return result.stream().findFirst();
+    }
+
+    @Override
     public Optional<Member> findByName(String name) {
         String sql = "SELECT id, name FROM member WHERE name = ?";
         List<Member> result = jdbcTemplate.query(sql, memberRowMapper, name);

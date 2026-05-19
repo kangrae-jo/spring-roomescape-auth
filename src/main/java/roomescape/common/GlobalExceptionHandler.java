@@ -16,6 +16,7 @@ import roomescape.common.exception.DuplicatedException;
 import roomescape.common.exception.InUseException;
 import roomescape.common.exception.NotFoundException;
 import roomescape.common.exception.PastDateTimeException;
+import roomescape.common.exception.UnauthorizedException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -44,6 +45,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ErrorResponse> handleAuthenticationException(AuthenticationException e) {
+        return handleBusinessException(e, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ErrorResponse> handleUnauthorizedException(UnauthorizedException e) {
         return handleBusinessException(e, HttpStatus.UNAUTHORIZED);
     }
 

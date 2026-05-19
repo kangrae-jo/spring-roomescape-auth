@@ -9,7 +9,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 @Component
 public class LoginCheckInterceptor implements HandlerInterceptor {
 
-    private static final String LOGIN_MEMBER = "loginMember";
+    private static final String LOGIN_MEMBER_ID = "loginMemberId";
 
     @Override
     public boolean preHandle(
@@ -18,7 +18,7 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
             Object handler
     ) throws Exception {
         HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute(LOGIN_MEMBER) == null) {
+        if (session == null || session.getAttribute(LOGIN_MEMBER_ID) == null) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return false;
         }
