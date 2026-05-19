@@ -1,5 +1,6 @@
 package roomescape.auth.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import java.net.URI;
@@ -38,9 +39,12 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<Void> login(
             @Valid @RequestBody LoginRequest request,
-            HttpSession session
+            HttpServletRequest servletRequest
     ) {
         Member member = authService.login(request);
+
+        HttpSession session = servletRequest.getSession();
+        servletRequest.changeSessionId();
         session.setAttribute(LOGIN_MEMBER_ID, member.getId());
 
         return ResponseEntity.ok().build();
