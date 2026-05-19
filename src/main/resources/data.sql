@@ -8,6 +8,14 @@ VALUES ('10:00'),
        ('13:00'),
        ('16:00');
 
+INSERT INTO member (id, name)
+VALUES (1, '봉구스'),
+       (2, '밀란');
+
+INSERT INTO auth_credential (member_id, password_hash)
+VALUES (1, '$2y$10$BdKb4loIDkFnStCRLEo0muqSu/mGmTq63hZbG1O./dM9gtpfHBOny'),
+       (2, '$2y$10$BdKb4loIDkFnStCRLEo0muqSu/mGmTq63hZbG1O./dM9gtpfHBOny');
+
 INSERT INTO reservation (name, date, time_id, theme_id)
 VALUES ('봉구스', '2026-05-06', 1, 1),
        ('밀란', '2026-05-07', 2, 2);
