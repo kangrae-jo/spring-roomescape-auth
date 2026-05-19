@@ -1,5 +1,6 @@
 package roomescape.auth.service;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import roomescape.auth.entity.AuthCredential;
@@ -17,13 +18,16 @@ public class AuthService {
 
     private final MemberRepository memberRepository;
     private final AuthCredentialRepository authCredentialRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public AuthService(
             MemberRepository memberRepository,
-            AuthCredentialRepository authCredentialRepository
+            AuthCredentialRepository authCredentialRepository,
+            PasswordEncoder passwordEncoder
     ) {
         this.memberRepository = memberRepository;
         this.authCredentialRepository = authCredentialRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional
@@ -33,7 +37,8 @@ public class AuthService {
         }
 
         Member member = memberRepository.save(Member.create(request.name()));
-        authCredentialRepository.save(AuthCredential.create(member.getId(), request.password()));
+        String passwordHash = passwordEncoder.encode(request.password());
+        authCredentialRepository.save(AuthCredential.createWithPasswordHash(member.getId(), passwordHash));
 
         return member;
     }
@@ -44,9 +49,10 @@ public class AuthService {
                 .orElseThrow(AuthenticationException::new);
         AuthCredential authCredential = authCredentialRepository.findByMemberId(member.getId())
                 .orElseThrow(AuthenticationException::new);
-
-        if (!authCredential.hasPassword(request.password())) {
+        
+        if (!passwordEncoder.matches(request.password(), authCredential.getPasswordHash())) {
             throw new AuthenticationException();
+
         }
         return member;
     }

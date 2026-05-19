@@ -6,24 +6,20 @@ public class AuthCredential {
 
     private final Long id;
     private final Long memberId;
-    private final String password;
+    private final String passwordHash;
 
-    private AuthCredential(Long id, Long memberId, String password) {
+    private AuthCredential(Long id, Long memberId, String passwordHash) {
         this.id = id;
         this.memberId = memberId;
-        this.password = password;
+        this.passwordHash = passwordHash;
     }
 
-    public static AuthCredential create(Long memberId, String password) {
-        return new AuthCredential(null, memberId, password);
+    public static AuthCredential createWithPasswordHash(Long memberId, String passwordHash) {
+        return new AuthCredential(null, memberId, passwordHash);
     }
 
-    public static AuthCredential of(Long id, Long memberId, String password) {
-        return new AuthCredential(id, memberId, password);
-    }
-
-    public boolean hasPassword(String password) {
-        return this.password.equals(password);
+    public static AuthCredential of(Long id, Long memberId, String passwordHash) {
+        return new AuthCredential(id, memberId, passwordHash);
     }
 
     public Long getId() {
@@ -34,8 +30,8 @@ public class AuthCredential {
         return memberId;
     }
 
-    public String getPassword() {
-        return password;
+    public String getPasswordHash() {
+        return passwordHash;
     }
 
     @Override

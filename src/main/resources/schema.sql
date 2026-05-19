@@ -27,9 +27,9 @@ CREATE TABLE IF NOT EXISTS member
 
 CREATE TABLE IF NOT EXISTS auth_credential
 (
-    id        BIGINT       NOT NULL AUTO_INCREMENT,
-    member_id BIGINT       NOT NULL UNIQUE,
-    password  VARCHAR(255) NOT NULL,
+    id            BIGINT       NOT NULL AUTO_INCREMENT,
+    member_id     BIGINT       NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
 
     PRIMARY KEY (id),
     FOREIGN KEY (member_id) REFERENCES member (id)
