@@ -5,6 +5,12 @@ import java.time.LocalTime;
 
 public final class DuplicatedException extends BusinessException {
 
+    public DuplicatedException(DomainType domainType) {
+        super(clientMessage(domainType),
+                logMessage(domainType)
+        );
+    }
+
     public DuplicatedException(DomainType domainType, LocalDate date, Long timeId, Long themeId) {
         super(clientMessage(domainType),
                 logMessage(domainType, date, timeId, themeId)
@@ -19,6 +25,10 @@ public final class DuplicatedException extends BusinessException {
 
     public static String clientMessage(DomainType domainType) {
         return "이미 존재하는 %s입니다.".formatted(domainType.displayName());
+    }
+
+    private static String logMessage(DomainType domainType) {
+        return "Duplicated domain=%s".formatted(domainType.name());
     }
 
     private static String logMessage(DomainType domainType, LocalDate date, Long timeId, Long themeId) {

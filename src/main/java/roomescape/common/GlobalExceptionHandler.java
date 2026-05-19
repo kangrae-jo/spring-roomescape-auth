@@ -10,6 +10,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import roomescape.common.exception.AccessDeniedException;
+import roomescape.common.exception.AuthenticationException;
 import roomescape.common.exception.BusinessException;
 import roomescape.common.exception.DuplicatedException;
 import roomescape.common.exception.InUseException;
@@ -39,6 +40,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException e) {
         return handleBusinessException(e, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleAuthenticationException(AuthenticationException e) {
+        return handleBusinessException(e, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(PastDateTimeException.class)

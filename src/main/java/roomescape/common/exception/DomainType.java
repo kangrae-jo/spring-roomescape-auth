@@ -4,7 +4,8 @@ public enum DomainType {
 
     RESERVATION("예약"),
     RESERVATION_TIME("예약 시간"),
-    THEME("테마");
+    THEME("테마"),
+    MEMBER("멤버");
 
     private final String displayName;
 
