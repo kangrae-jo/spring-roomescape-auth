@@ -41,14 +41,14 @@ public class ReservationService {
     }
 
     @Transactional
-    public Reservation save(ReservationRequest request) {
+    public Reservation save(ReservationRequest request, String name) {
         ReservationTime reservationTime = reservationTimeService.getById(request.timeId());
         validatePastReservation(request.date(), reservationTime.getStartAt());
 
         Theme theme = themeService.getById(request.themeId());
 
         Reservation reservation = Reservation.create(
-                request.name(),
+                name,
                 request.date(),
                 reservationTime,
                 theme

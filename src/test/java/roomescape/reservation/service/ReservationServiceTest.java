@@ -59,17 +59,16 @@ class ReservationServiceTest {
         ReservationTime reservationTime = reservationTimeService.save(reservationTimeRequest(DEFAULT_START_AT));
         Theme theme = themeService.save(themeRequest(DEFAULT_THEME_NAME));
         ReservationRequest reservationRequest = reservationRequest(
-                DEFAULT_RESERVATION_NAME,
                 futureReservationDate(clock),
                 reservationTime.getId(),
                 theme.getId()
         );
 
         // when
-        Reservation reservation = reservationService.save(reservationRequest);
+        Reservation reservation = reservationService.save(reservationRequest, DEFAULT_RESERVATION_NAME);
 
         // then
-        assertThat(reservation.getName()).isEqualTo(reservationRequest.name());
+        assertThat(reservation.getName()).isEqualTo(DEFAULT_RESERVATION_NAME);
         assertThat(reservation.getDate()).isEqualTo(reservationRequest.date());
         assertThat(reservation.getTime().getId()).isEqualTo(reservationRequest.timeId());
         assertThat(reservation.getTheme().getId()).isEqualTo(reservationRequest.themeId());
@@ -80,14 +79,13 @@ class ReservationServiceTest {
         // given
         Theme theme = themeService.save(themeRequest(DEFAULT_THEME_NAME));
         ReservationRequest reservationRequest = reservationRequest(
-                DEFAULT_RESERVATION_NAME,
                 futureReservationDate(clock),
                 NOT_FOUND_ID,
                 theme.getId()
         );
 
         // when & then
-        assertThatThrownBy(() -> reservationService.save(reservationRequest))
+        assertThatThrownBy(() -> reservationService.save(reservationRequest, DEFAULT_RESERVATION_NAME))
                 .isInstanceOf(NotFoundException.class);
     }
 
@@ -96,14 +94,13 @@ class ReservationServiceTest {
         // given
         ReservationTime reservationTime = reservationTimeService.save(reservationTimeRequest(DEFAULT_START_AT));
         ReservationRequest reservationRequest = reservationRequest(
-                DEFAULT_RESERVATION_NAME,
                 futureReservationDate(clock),
                 reservationTime.getId(),
                 NOT_FOUND_ID
         );
 
         // when & then
-        assertThatThrownBy(() -> reservationService.save(reservationRequest))
+        assertThatThrownBy(() -> reservationService.save(reservationRequest, DEFAULT_RESERVATION_NAME))
                 .isInstanceOf(NotFoundException.class);
     }
 
@@ -114,19 +111,17 @@ class ReservationServiceTest {
         Theme theme1 = themeService.save(themeRequest(FIRST_THEME_NAME));
         Theme theme2 = themeService.save(themeRequest(SECOND_THEME_NAME));
         ReservationRequest reservationRequest1 = reservationRequest(
-                DEFAULT_RESERVATION_NAME,
                 futureReservationDate(clock),
                 reservationTime.getId(),
                 theme1.getId()
         );
         ReservationRequest reservationRequest2 = reservationRequest(
-                DEFAULT_RESERVATION_NAME,
                 futureReservationDate(clock),
                 reservationTime.getId(),
                 theme2.getId()
         );
-        Reservation reservation1 = reservationService.save(reservationRequest1);
-        Reservation reservation2 = reservationService.save(reservationRequest2);
+        Reservation reservation1 = reservationService.save(reservationRequest1, DEFAULT_RESERVATION_NAME);
+        Reservation reservation2 = reservationService.save(reservationRequest2, DEFAULT_RESERVATION_NAME);
 
         // when
         List<Reservation> reservations = reservationService.findAll();
@@ -141,15 +136,14 @@ class ReservationServiceTest {
         ReservationTime reservationTime = reservationTimeService.save(reservationTimeRequest(DEFAULT_START_AT));
         Theme theme = themeService.save(themeRequest(DEFAULT_THEME_NAME));
         ReservationRequest reservationRequest = reservationRequest(
-                DEFAULT_RESERVATION_NAME,
                 futureReservationDate(clock),
                 reservationTime.getId(),
                 theme.getId()
         );
-        reservationService.save(reservationRequest);
+        reservationService.save(reservationRequest, DEFAULT_RESERVATION_NAME);
 
         // when & then
-        assertThatThrownBy(() -> reservationService.save(reservationRequest))
+        assertThatThrownBy(() -> reservationService.save(reservationRequest, DEFAULT_RESERVATION_NAME))
                 .isInstanceOf(DuplicatedException.class);
     }
 
@@ -160,12 +154,11 @@ class ReservationServiceTest {
         Theme theme = themeService.save(themeRequest(DEFAULT_THEME_NAME));
         LocalDate date1 = futureReservationDate(clock);
         ReservationRequest reservationRequest = reservationRequest(
-                DEFAULT_RESERVATION_NAME,
                 date1,
                 reservationTime.getId(),
                 theme.getId()
         );
-        Reservation savedReservation = reservationService.save(reservationRequest);
+        Reservation savedReservation = reservationService.save(reservationRequest, DEFAULT_RESERVATION_NAME);
         LocalDate date2 = date1.plusDays(1);
 
         // when
@@ -187,12 +180,11 @@ class ReservationServiceTest {
         Theme theme = themeService.save(themeRequest(DEFAULT_THEME_NAME));
         LocalDate date1 = futureReservationDate(clock);
         ReservationRequest reservationRequest = reservationRequest(
-                DEFAULT_RESERVATION_NAME,
                 date1,
                 reservationTime.getId(),
                 theme.getId()
         );
-        Reservation savedReservation = reservationService.save(reservationRequest);
+        Reservation savedReservation = reservationService.save(reservationRequest, DEFAULT_RESERVATION_NAME);
         LocalDate date2 = date1.plusDays(1);
 
         // when & then
@@ -209,12 +201,11 @@ class ReservationServiceTest {
         ReservationTime reservationTime = reservationTimeService.save(reservationTimeRequest(DEFAULT_START_AT));
         Theme theme = themeService.save(themeRequest(DEFAULT_THEME_NAME));
         ReservationRequest reservationRequest = reservationRequest(
-                DEFAULT_RESERVATION_NAME,
                 futureReservationDate(clock),
                 reservationTime.getId(),
                 theme.getId()
         );
-        Reservation reservation = reservationService.save(reservationRequest);
+        Reservation reservation = reservationService.save(reservationRequest, DEFAULT_RESERVATION_NAME);
 
         // when
         List<Reservation> reservations = reservationService.findAll();
@@ -229,12 +220,11 @@ class ReservationServiceTest {
         ReservationTime reservationTime = reservationTimeService.save(reservationTimeRequest(DEFAULT_START_AT));
         Theme theme = themeService.save(themeRequest(DEFAULT_THEME_NAME));
         ReservationRequest reservationRequest = reservationRequest(
-                DEFAULT_RESERVATION_NAME,
                 futureReservationDate(clock),
                 reservationTime.getId(),
                 theme.getId()
         );
-        Reservation reservation = reservationService.save(reservationRequest);
+        Reservation reservation = reservationService.save(reservationRequest, DEFAULT_RESERVATION_NAME);
 
         // when
         reservationService.deleteById(reservation.getId());
@@ -250,19 +240,17 @@ class ReservationServiceTest {
         ReservationTime reservationTime = reservationTimeService.save(reservationTimeRequest(DEFAULT_START_AT));
         Theme theme = themeService.save(themeRequest(DEFAULT_THEME_NAME));
         ReservationRequest reservationRequest1 = reservationRequest(
-                OTHER_RESERVATION_NAME,
                 futureReservationDate(clock),
                 reservationTime.getId(),
                 theme.getId()
         );
         ReservationRequest reservationRequest2 = reservationRequest(
-                OTHER_RESERVATION_NAME,
                 nextReservationDate(clock),
                 reservationTime.getId(),
                 theme.getId()
         );
-        Reservation reservation = reservationService.save(reservationRequest1);
-        Reservation sameNameReservation = reservationService.save(reservationRequest2);
+        Reservation reservation = reservationService.save(reservationRequest1, DEFAULT_RESERVATION_NAME);
+        Reservation sameNameReservation = reservationService.save(reservationRequest2, DEFAULT_RESERVATION_NAME);
 
         // when
         reservationService.deleteByIdAndName(reservation.getId(), reservation.getName());
@@ -279,15 +267,14 @@ class ReservationServiceTest {
         ReservationTime reservationTime = reservationTimeService.save(reservationTimeRequest(DEFAULT_START_AT));
         Theme theme = themeService.save(themeRequest(DEFAULT_THEME_NAME));
         ReservationRequest reservationRequest = reservationRequest(
-                OTHER_RESERVATION_NAME,
                 futureReservationDate(clock),
                 reservationTime.getId(),
                 theme.getId()
         );
-        Reservation reservation = reservationService.save(reservationRequest);
+        Reservation reservation = reservationService.save(reservationRequest, DEFAULT_RESERVATION_NAME);
 
         // when & then
-        assertThatThrownBy(() -> reservationService.deleteByIdAndName(reservation.getId(), DEFAULT_RESERVATION_NAME))
+        assertThatThrownBy(() -> reservationService.deleteByIdAndName(reservation.getId(), OTHER_RESERVATION_NAME))
                 .isInstanceOf(AccessDeniedException.class);
         assertThat(reservationService.findAll()).contains(reservation);
     }
@@ -305,14 +292,13 @@ class ReservationServiceTest {
         ReservationTime reservationTime = reservationTimeService.save(reservationTimeRequest(DEFAULT_START_AT));
         Theme theme = themeService.save(themeRequest(DEFAULT_THEME_NAME));
         ReservationRequest reservationRequest = reservationRequest(
-                DEFAULT_RESERVATION_NAME,
                 pastReservationDate(clock),
                 reservationTime.getId(),
                 theme.getId()
         );
 
         // when & then
-        assertThatThrownBy(() -> reservationService.save(reservationRequest))
+        assertThatThrownBy(() -> reservationService.save(reservationRequest, DEFAULT_RESERVATION_NAME))
                 .isInstanceOf(PastDateTimeException.class);
     }
 
@@ -322,15 +308,14 @@ class ReservationServiceTest {
         ReservationTime reservationTime = reservationTimeService.save(reservationTimeRequest(DEFAULT_START_AT));
         Theme theme = themeService.save(themeRequest(DEFAULT_THEME_NAME));
         ReservationRequest reservationRequest = reservationRequest(
-                OTHER_RESERVATION_NAME,
                 futureReservationDate(clock),
                 reservationTime.getId(),
                 theme.getId()
         );
-        Reservation savedReservation = reservationService.save(reservationRequest);
+        Reservation savedReservation = reservationService.save(reservationRequest, DEFAULT_RESERVATION_NAME);
 
         // when
-        List<Reservation> reservations = reservationService.findAllByName(OTHER_RESERVATION_NAME);
+        List<Reservation> reservations = reservationService.findAllByName(DEFAULT_RESERVATION_NAME);
 
         // then
         assertThat(reservations).contains(savedReservation);

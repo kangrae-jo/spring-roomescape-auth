@@ -92,7 +92,6 @@ public class MissionStep3Test {
                 .path("id");
 
         Map<String, Object> reservation = reservationRequestBody(
-                RESERVATION_NAME,
                 futureReservationDate(clock),
                 reservationTimeId.longValue(),
                 themeId.longValue()

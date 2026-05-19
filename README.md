@@ -54,18 +54,18 @@
     - [x] 로그인에 성공하면 이후 요청에서 같은 사용자를 식별할 수 있어야 한다.
     - [x] 로그인에 실패하면 적절한 응답을 반환한다.
 
-- [ ] 예약 생성
-    - [ ] 로그인한 사용자 예약을 생성할 수 있다.
+- [x] 예약 생성
+    - [x] 로그인한 사용자 예약을 생성할 수 있다.
     - [x] 예약 생성 시 요청으로 받은 이름이 아니라 로그인한 사용자를 기준으로 예약을 만든다.
-    - [ ] 로그인하지 않은 사용자는 예약을 생성할 수 없다.
+    - [x] 로그인하지 않은 사용자는 예약을 생성할 수 없다.
 
-- [ ] 예약 조회
+- [x] 예약 조회
     - [x] 로그인한 사용자는 자신의 예약을 조회할 수 있다.
     - [x] 로그인하지 않은 사용자는 인증이 필요한 예약 조회 기능을 사용할 수 없다.
 
-- [ ] 인증 공통 처리
+- [x] 인증 공통 처리
     - [x] 로그인 여부 확인 로직을 컨트롤러마다 반복하지 않는다.
-    - [ ] 인증이 필요한 API와 필요하지 않은 API를 구분한다.
+    - [x] 인증이 필요한 API와 필요하지 않은 API를 구분한다.
     - [x] 인증 실패 시 일관된 응답을 반환한다.
 
 - [ ] 구현 조건
@@ -257,7 +257,7 @@ Content-Type: application/json
 | admin  | 테마 추가        | `POST /admin/themes`                         | `{name, description, thumbnailUrl}` | `{id, name, description, thumbnailUrl, runtime}`                                                    |
 | admin  | 테마 삭제        | `DELETE /admin/themes/{id}`                  |                                     |                                                                                                     |
 |        | (유저)         |                                              |                                     |
-| member | 예약 추가        | `POST /reservations`                         | `{name, date, timeId, themeId}`     | `{id, name, date, time:{id, startAt}, theme:{id, name, description, thumbnailUrl, runtime}}`        |
+| member | 예약 추가        | `POST /reservations`                         | `{date, timeId, themeId}`           | `{id, name, date, time:{id, startAt}, theme:{id, name, description, thumbnailUrl, runtime}}`        |
 | member | 예약 시간 수정     | `PATCH /reservations/{id}/schedule`          | `{date, timeId}`                    | `{id, name, date, time:{id, startAt}, theme:{id, name, description, thumbnailUrl, runtime}}`        |
 | member | 예약 조회        | `GET /reservations`                          |                                     | `[{id, name, date, time:{id, startAt}, theme:{id, name, description, thumbnailUrl, runtime}}, ...]` |
 | member | 예약 삭제        | `DELETE /reservations/{id}`                  |                                     |                                                                                                     |

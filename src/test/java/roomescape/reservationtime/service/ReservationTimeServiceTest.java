@@ -83,12 +83,11 @@ class ReservationTimeServiceTest {
         ReservationTime reservationTime2 = reservationTimeService.save(reservationTimeRequest(AVAILABLE_START_AT));
         Theme theme = themeService.save(themeRequest(THEME_NAME));
         ReservationRequest reservationRequest = reservationRequest(
-                RESERVATION_NAME,
                 futureReservationDate(clock),
                 reservationTime1.getId(),
                 theme.getId()
         );
-        Reservation reservation = reservationService.save(reservationRequest);
+        Reservation reservation = reservationService.save(reservationRequest, RESERVATION_NAME);
 
         // when
         List<ReservationTime> reservationTimes = reservationTimeService.findAvailableReservationTimes(

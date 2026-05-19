@@ -36,12 +36,11 @@ public final class TestFixture {
     }
 
     public static ReservationRequest reservationRequest(
-            String name,
             LocalDate date,
             Long timeId,
             Long themeId
     ) {
-        return new ReservationRequest(name, date, timeId, themeId);
+        return new ReservationRequest(date, timeId, themeId);
     }
 
     public static ReservationUpdateRequest reservationupdateRequest(
@@ -72,14 +71,8 @@ public final class TestFixture {
         return Map.of("startAt", startAt);
     }
 
-    public static Map<String, Object> reservationRequestBody(
-            String name,
-            LocalDate date,
-            Long timeId,
-            Long themeId
-    ) {
+    public static Map<String, Object> reservationRequestBody(LocalDate date, Long timeId, Long themeId) {
         return Map.of(
-                "name", name,
                 "date", date.toString(),
                 "timeId", timeId,
                 "themeId", themeId
