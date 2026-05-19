@@ -16,42 +16,10 @@
         <a href="#mine" data-route="mine">내 예약</a>
         <a href="#admin" data-route="admin">관리자</a>
     </nav>
+    <button id="auth-button" class="auth-button" type="button">로그인</button>
 </header>
 
 <main class="container">
-    <section id="auth-panel" class="panel auth-panel">
-        <div class="section-head auth-head">
-            <h2>계정</h2>
-            <div id="auth-status" class="auth-status">로그인하지 않음</div>
-        </div>
-        <div class="auth-forms">
-            <form id="login-form" class="toolbar compact auth-form">
-                <label>
-                    이름
-                    <input id="login-name" type="text" maxlength="10" autocomplete="username" required>
-                </label>
-                <label>
-                    비밀번호
-                    <input id="login-password" type="password" autocomplete="current-password" required>
-                </label>
-                <button type="submit">로그인</button>
-            </form>
-            <form id="register-form" class="toolbar compact auth-form">
-                <label>
-                    이름
-                    <input id="register-name" type="text" maxlength="10" autocomplete="username" required>
-                </label>
-                <label>
-                    비밀번호
-                    <input id="register-password" type="password" autocomplete="new-password" required>
-                </label>
-                <button type="submit">회원가입</button>
-            </form>
-            <button id="logout-button" type="button" hidden>로그아웃</button>
-        </div>
-        <p id="auth-message" class="form-message is-empty" aria-live="polite"></p>
-    </section>
-
     <section id="page-home" class="page" data-page="home">
         <div class="page-title">
             <h1>방탈출 예약</h1>
@@ -275,6 +243,43 @@
         </section>
     </section>
 </main>
+
+<div id="auth-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title" hidden>
+    <div class="modal-backdrop" data-modal-close></div>
+    <section class="modal-panel">
+        <div class="section-head modal-head">
+            <h2 id="auth-modal-title">계정</h2>
+            <button id="auth-modal-close" class="icon-button" type="button" aria-label="닫기">닫기</button>
+        </div>
+        <div class="auth-forms">
+            <form id="login-form" class="auth-form">
+                <h3>로그인</h3>
+                <label>
+                    이름
+                    <input id="login-name" type="text" maxlength="10" autocomplete="username" required>
+                </label>
+                <label>
+                    비밀번호
+                    <input id="login-password" type="password" autocomplete="current-password" required>
+                </label>
+                <button type="submit">로그인</button>
+            </form>
+            <form id="register-form" class="auth-form">
+                <h3>회원가입</h3>
+                <label>
+                    이름
+                    <input id="register-name" type="text" maxlength="10" autocomplete="username" required>
+                </label>
+                <label>
+                    비밀번호
+                    <input id="register-password" type="password" autocomplete="new-password" required>
+                </label>
+                <button type="submit">회원가입</button>
+            </form>
+        </div>
+        <p id="auth-message" class="form-message is-empty" aria-live="polite"></p>
+    </section>
+</div>
 
 <div id="reservation-toast" class="toast" role="status" aria-live="polite" hidden></div>
 

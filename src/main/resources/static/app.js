@@ -46,6 +46,27 @@ function setToday() {
 }
 
 function bindEvents() {
+  $("#auth-button").addEventListener("click", () => {
+    if (state.isAuthenticated) {
+      safely(null, logout);
+      return;
+    }
+    openAuthModal();
+  });
+
+  $("#auth-modal-close").addEventListener("click", closeAuthModal);
+  $("#auth-modal").addEventListener("click", (event) => {
+    if (event.target.matches("[data-modal-close]")) {
+      closeAuthModal();
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !$("#auth-modal").hidden) {
+      closeAuthModal();
+    }
+  });
+
   $("#login-form").addEventListener("submit", async (event) => {
     event.preventDefault();
     await safely("#auth-message", login);
@@ -55,8 +76,6 @@ function bindEvents() {
     event.preventDefault();
     await safely("#auth-message", register);
   });
-
-  $("#logout-button").addEventListener("click", () => safely("#auth-message", logout));
 
   $("#availability-form").addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -203,7 +222,8 @@ async function register() {
   });
   await loginWithCredentials(name, password);
   $("#register-form").reset();
-  showInlineMessage("#auth-message", "회원가입 후 로그인되었습니다.", false);
+  closeAuthModal();
+  showToast("회원가입 후 로그인되었습니다.");
 }
 
 async function login() {
@@ -215,7 +235,8 @@ async function login() {
 
   await loginWithCredentials(name, password);
   $("#login-form").reset();
-  showInlineMessage("#auth-message", "로그인되었습니다.", false);
+  closeAuthModal();
+  showToast("로그인되었습니다.");
 }
 
 async function loginWithCredentials(name, password) {
@@ -231,7 +252,8 @@ async function logout() {
   await request("/auth/logout", { method: "POST" });
   setUnauthenticated();
   await loadAll();
-  showInlineMessage("#auth-message", "로그아웃되었습니다.", false);
+  closeAuthModal();
+  showToast("로그아웃되었습니다.");
 }
 
 function setAuthenticated(name) {
@@ -250,6 +272,17 @@ function setUnauthenticated() {
   state.reservationDraftsById = {};
   sessionStorage.removeItem(AUTH_MEMBER_NAME_KEY);
   renderAuthState();
+}
+
+function openAuthModal() {
+  clearInlineMessage("#auth-message");
+  $("#auth-modal").hidden = false;
+  $("#login-name").focus();
+}
+
+function closeAuthModal() {
+  $("#auth-modal").hidden = true;
+  clearInlineMessage("#auth-message");
 }
 
 async function createReservation() {
@@ -549,15 +582,10 @@ function route() {
 }
 
 function renderAuthState() {
-  const status = $("#auth-status");
-  status.textContent = state.isAuthenticated
-    ? `${state.currentMemberName}님 로그인 중`
-    : "로그인하지 않음";
-  status.classList.toggle("signed-in", state.isAuthenticated);
-
-  $("#login-form").hidden = state.isAuthenticated;
-  $("#register-form").hidden = state.isAuthenticated;
-  $("#logout-button").hidden = !state.isAuthenticated;
+  const button = $("#auth-button");
+  button.textContent = state.isAuthenticated ? "로그아웃" : "로그인";
+  button.title = state.isAuthenticated ? `${state.currentMemberName}님 로그인 중` : "로그인";
+  button.classList.toggle("signed-in", state.isAuthenticated);
 }
 
 function renderHome() {

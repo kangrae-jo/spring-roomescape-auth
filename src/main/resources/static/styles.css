@@ -39,6 +39,16 @@ a {
     flex-wrap: wrap;
 }
 
+.auth-button {
+    flex: 0 0 auto;
+}
+
+.auth-button.signed-in {
+    border-color: #d92d20;
+    background: #d92d20;
+    color: #ffffff;
+}
+
 .tabs a,
 .button,
 button {
@@ -195,35 +205,62 @@ select:disabled {
     font-size: 20px;
 }
 
-.auth-panel {
-    margin-bottom: 24px;
+.modal {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    display: grid;
+    place-items: center;
+    padding: 24px;
 }
 
-.auth-head {
-    margin-bottom: 12px;
+.modal[hidden] {
+    display: none;
 }
 
-.auth-status {
-    min-height: 32px;
-    padding: 6px 10px;
+.modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(20, 31, 42, 0.42);
+}
+
+.modal-panel {
+    position: relative;
+    z-index: 1;
+    width: min(720px, 100%);
+    max-height: calc(100vh - 48px);
+    overflow: auto;
+    padding: 20px;
     border: 1px solid #d8e0e8;
-    border-radius: 6px;
-    background: #f8fafc;
-    color: #536271;
-    font-weight: 800;
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: 0 24px 60px rgba(32, 43, 54, 0.24);
 }
 
-.auth-status.signed-in {
-    border-color: #b9e2d3;
-    background: #eefaf6;
-    color: #0f6b4f;
+.modal-head {
+    margin-bottom: 16px;
+}
+
+.icon-button {
+    min-height: 34px;
 }
 
 .auth-forms {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    align-items: start;
+}
+
+.auth-form {
+    display: grid;
     gap: 12px;
-    align-items: end;
+}
+
+.auth-form h3 {
+    margin: 0;
+    color: #25313d;
+    font-size: 16px;
 }
 
 .toolbar,
@@ -526,7 +563,8 @@ th {
     }
 
     .tabs,
-    .tabs a {
+    .tabs a,
+    .auth-button {
         width: 100%;
     }
 
