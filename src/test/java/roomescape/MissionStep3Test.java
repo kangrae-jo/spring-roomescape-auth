@@ -27,16 +27,17 @@ public class MissionStep3Test {
     private static final String THEME_NAME = "테마A";
     private static final String THEME_DESCRIPTION = "테마A란...";
     private static final String THEME_THUMBNAIL_URL = "https://example.com/themes/theme-1.png";
-    private static final String RESERVATION_NAME = "브라운";
+    private static final String AUTHORIZATION_HEADER = "Authorization";
+    private static final String BEARER_PREFIX = "Bearer ";
 
     @Autowired
     private Clock clock;
 
-    private String sessionId;
+    private String accessToken;
 
     @BeforeEach
     void setUp() {
-        sessionId = login("milan", "1234");
+        accessToken = login("milan", "1234");
     }
 
     @Test
@@ -44,7 +45,7 @@ public class MissionStep3Test {
         Map<String, Object> params = reservationTimeRequestBody(ADMIN_TIME_START_AT);
 
         given().log().all()
-                .cookie("JSESSIONID", sessionId)
+                .header(AUTHORIZATION_HEADER, bearerToken())
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().post("/admin/times")
@@ -52,14 +53,14 @@ public class MissionStep3Test {
                 .statusCode(201);
 
         given().log().all()
-                .cookie("JSESSIONID", sessionId)
+                .header(AUTHORIZATION_HEADER, bearerToken())
                 .when().get("/times")
                 .then().log().all()
                 .statusCode(200)
                 .body("size()", is(1));
 
         given().log().all()
-                .cookie("JSESSIONID", sessionId)
+                .header(AUTHORIZATION_HEADER, bearerToken())
                 .when().delete("/admin/times/1")
                 .then().log().all()
                 .statusCode(204);
@@ -70,7 +71,7 @@ public class MissionStep3Test {
         Map<String, Object> reservationTime = reservationTimeRequestBody(RESERVATION_TIME_START_AT);
 
         Integer reservationTimeId = given().log().all()
-                .cookie("JSESSIONID", sessionId)
+                .header(AUTHORIZATION_HEADER, bearerToken())
                 .contentType(ContentType.JSON)
                 .body(reservationTime)
                 .when().post("/admin/times")
@@ -82,7 +83,7 @@ public class MissionStep3Test {
         Map<String, Object> theme = themeRequestBody(THEME_NAME, THEME_DESCRIPTION, THEME_THUMBNAIL_URL);
 
         Integer themeId = given().log().all()
-                .cookie("JSESSIONID", sessionId)
+                .header(AUTHORIZATION_HEADER, bearerToken())
                 .contentType(ContentType.JSON)
                 .body(theme)
                 .when().post("/admin/themes")
@@ -98,7 +99,7 @@ public class MissionStep3Test {
         );
 
         given().log().all()
-                .cookie("JSESSIONID", sessionId)
+                .header(AUTHORIZATION_HEADER, bearerToken())
                 .contentType(ContentType.JSON)
                 .body(reservation)
                 .when().post("/reservations")
@@ -106,7 +107,7 @@ public class MissionStep3Test {
                 .statusCode(201);
 
         given().log().all()
-                .cookie("JSESSIONID", sessionId)
+                .header(AUTHORIZATION_HEADER, bearerToken())
                 .when().get("/admin/reservations")
                 .then().log().all()
                 .statusCode(200)
@@ -126,7 +127,11 @@ public class MissionStep3Test {
                 .post("/auth/login")
                 .then()
                 .extract()
-                .cookie("JSESSIONID");
+                .path("accessToken");
+    }
+
+    private String bearerToken() {
+        return BEARER_PREFIX + accessToken;
     }
 
 }
