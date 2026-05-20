@@ -30,7 +30,7 @@ public class AuthController {
     public ResponseEntity<Void> register(
             @Valid @RequestBody RegisterMemberRequest request
     ) {
-        Member member = authService.register(request);
+        authService.register(request);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 

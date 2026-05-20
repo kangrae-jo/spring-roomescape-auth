@@ -17,6 +17,7 @@ const state = {
 
 const DEFAULT_THEME_IMAGE = "https://avatars.githubusercontent.com/u/177727543?v=4&size=64";
 const AUTH_MEMBER_NAME_KEY = "roomescape.memberName";
+const AUTH_ACCESS_TOKEN_KEY = "roomescape.accessToken";
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => Array.from(document.querySelectorAll(selector));
@@ -201,7 +202,9 @@ async function loadPopularThemes() {
 
 function restoreAuthState() {
   const memberName = sessionStorage.getItem(AUTH_MEMBER_NAME_KEY);
-  if (!memberName) {
+  const accessToken = sessionStorage.getItem(AUTH_ACCESS_TOKEN_KEY);
+  if (!memberName || !accessToken) {
+    setUnauthenticated();
     return;
   }
 
@@ -240,26 +243,26 @@ async function login() {
 }
 
 async function loginWithCredentials(name, password) {
-  await request("/auth/login", {
+  const response = await request("/auth/login", {
     method: "POST",
     body: JSON.stringify({ name, password }),
   });
-  setAuthenticated(name);
+  setAuthenticated(name, response.accessToken);
   await loadAll();
 }
 
 async function logout() {
-  await request("/auth/logout", { method: "POST" });
   setUnauthenticated();
   await loadAll();
   closeAuthModal();
   showToast("로그아웃되었습니다.");
 }
 
-function setAuthenticated(name) {
+function setAuthenticated(name, accessToken) {
   state.isAuthenticated = true;
   state.currentMemberName = name;
   sessionStorage.setItem(AUTH_MEMBER_NAME_KEY, name);
+  sessionStorage.setItem(AUTH_ACCESS_TOKEN_KEY, accessToken);
   renderAuthState();
 }
 
@@ -271,6 +274,7 @@ function setUnauthenticated() {
   state.editableTimesByReservationId = {};
   state.reservationDraftsById = {};
   sessionStorage.removeItem(AUTH_MEMBER_NAME_KEY);
+  sessionStorage.removeItem(AUTH_ACCESS_TOKEN_KEY);
   renderAuthState();
 }
 
@@ -515,15 +519,17 @@ async function handleMyReservationClick(event) {
 }
 
 async function request(path, options = {}) {
-  const fetchOptions = { ...options };
-  delete fetchOptions.quiet;
+  const { quiet, headers: customHeaders = {}, ...fetchOptions } = options;
+  const accessToken = sessionStorage.getItem(AUTH_ACCESS_TOKEN_KEY);
+  const headers = {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+    ...customHeaders,
+  };
 
   const response = await fetch(path, {
-    credentials: "same-origin",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
+    headers,
     ...fetchOptions,
   });
 
