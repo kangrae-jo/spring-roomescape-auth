@@ -1,10 +1,14 @@
 package roomescape.config;
 
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+import java.security.Key;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Base64;
+import java.util.Date;
 import java.util.Map;
-import java.util.Objects;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import roomescape.reservation.entity.Reservation;
 import roomescape.reservation.payload.ReservationRequest;
@@ -15,6 +19,10 @@ import roomescape.theme.entity.Theme;
 import roomescape.theme.payload.ThemeRequest;
 
 public final class TestFixture {
+
+    private static final String TEST_JWT_SECRET_KEY = "/BWxvVt/eMsTVSq+RI9kRCrZKK38KNGIWi7ilxCg9So=";
+    private static final long TEST_JWT_EXPIRE_LENGTH = 3600000L;
+    private static final long LOGIN_MEMBER_ID = 1L;
 
     private TestFixture() {
     }
@@ -103,11 +111,23 @@ public final class TestFixture {
 
     public static RequestPostProcessor loginMember() {
         return request -> {
-            Objects.requireNonNull(request.getSession()).setAttribute(
-                    "loginMemberId", 1L
-            );
+            request.addHeader("Authorization", "Bearer " + createToken(LOGIN_MEMBER_ID));
             return request;
         };
+    }
+
+    private static String createToken(Long memberId) {
+        byte[] keyBytes = Base64.getDecoder().decode(TEST_JWT_SECRET_KEY);
+        Key secretKey = Keys.hmacShaKeyFor(keyBytes);
+        Date now = new Date();
+        Date validity = new Date(now.getTime() + TEST_JWT_EXPIRE_LENGTH);
+
+        return Jwts.builder()
+                .setSubject(String.valueOf(memberId))
+                .setIssuedAt(now)
+                .setExpiration(validity)
+                .signWith(secretKey)
+                .compact();
     }
 
 }

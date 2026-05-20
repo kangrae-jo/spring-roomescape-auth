@@ -1,7 +1,6 @@
 package roomescape.auth;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.core.MethodParameter;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -12,8 +11,6 @@ import roomescape.member.entity.Member;
 import roomescape.member.repository.MemberRepository;
 
 public class LoginMemberArgumentResolver implements HandlerMethodArgumentResolver {
-
-    private static final String LOGIN_MEMBER_ID = "loginMemberId";
 
     private final MemberRepository memberRepository;
 
@@ -36,15 +33,15 @@ public class LoginMemberArgumentResolver implements HandlerMethodArgumentResolve
             WebDataBinderFactory binderFactory
     ) {
         HttpServletRequest request = webRequest.getNativeRequest(HttpServletRequest.class);
-        HttpSession session = request.getSession(false);
-        if (session == null) {
+        if (request == null) {
             throw new UnauthorizedException();
         }
 
-        Long memberId = (Long) session.getAttribute(LOGIN_MEMBER_ID);
+        Long memberId = (Long) request.getAttribute(LoginCheckInterceptor.AUTHENTICATED_MEMBER_ID);
         if (memberId == null) {
             throw new UnauthorizedException();
         }
+
         return memberRepository.findById(memberId)
                 .orElseThrow(UnauthorizedException::new);
     }

@@ -4,11 +4,14 @@ import java.sql.PreparedStatement;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import roomescape.common.exception.DomainType;
+import roomescape.common.exception.DuplicatedException;
 import roomescape.member.entity.Member;
 
 @Repository
@@ -34,12 +37,15 @@ public class JdbcMemberRepository implements MemberRepository {
                 """;
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
-
-        jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(sql, new String[]{"id"});
-            ps.setString(1, member.getName());
-            return ps;
-        }, keyHolder);
+        try {
+            jdbcTemplate.update(connection -> {
+                PreparedStatement ps = connection.prepareStatement(sql, new String[]{"id"});
+                ps.setString(1, member.getName());
+                return ps;
+            }, keyHolder);
+        } catch (DuplicateKeyException e) {
+            throw new DuplicatedException(DomainType.MEMBER);
+        }
 
         Long id = Objects.requireNonNull(keyHolder.getKey()).longValue();
         return Member.of(id, member.getName());
