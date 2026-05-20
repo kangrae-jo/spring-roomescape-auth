@@ -33,6 +33,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
+import roomescape.auth.JwtTokenProvider;
 import roomescape.common.exception.AccessDeniedException;
 import roomescape.common.exception.DomainType;
 import roomescape.common.exception.DuplicatedException;
@@ -67,6 +68,9 @@ class ReservationControllerTest {
     private ObjectMapper objectMapper;
 
     @Autowired
+    private JwtTokenProvider jwtTokenProvider;
+
+    @Autowired
     private ReservationService reservationService;
 
     @Autowired
@@ -89,7 +93,7 @@ class ReservationControllerTest {
 
         // when
         ResultActions result = mockMvc.perform(post("/reservations")
-                .with(loginMember())
+                .with(loginMember(jwtTokenProvider))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)));
 
@@ -123,7 +127,7 @@ class ReservationControllerTest {
 
         // when
         ResultActions result = mockMvc.perform(patch("/reservations/{id}/schedule", id)
-                .with(loginMember())
+                .with(loginMember(jwtTokenProvider))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(updateRequest)));
 
@@ -150,7 +154,7 @@ class ReservationControllerTest {
 
         // when
         ResultActions result = mockMvc.perform(get("/admin/reservations")
-                .with(loginMember()));
+                .with(loginMember(jwtTokenProvider)));
 
         // then
         result.andExpect(status().isOk())
@@ -174,9 +178,9 @@ class ReservationControllerTest {
 
         // when
         ResultActions deleteResult = mockMvc.perform(delete("/reservations/{id}", id)
-                .with(loginMember()));
+                .with(loginMember(jwtTokenProvider)));
         ResultActions findResult = mockMvc.perform(get("/admin/reservations")
-                .with(loginMember()));
+                .with(loginMember(jwtTokenProvider)));
 
         // then
         deleteResult.andExpect(status().isNoContent());
@@ -204,9 +208,9 @@ class ReservationControllerTest {
 
         // when
         ResultActions deleteResult = mockMvc.perform(delete("/reservations/{id}", id)
-                .with(loginMember()));
+                .with(loginMember(jwtTokenProvider)));
         ResultActions findResult = mockMvc.perform(get("/admin/reservations")
-                .with(loginMember()));
+                .with(loginMember(jwtTokenProvider)));
 
         // then
         deleteResult.andExpect(status().isNoContent());
@@ -228,7 +232,7 @@ class ReservationControllerTest {
 
         // when
         ResultActions result = mockMvc.perform(get("/reservations")
-                .with(loginMember()));
+                .with(loginMember(jwtTokenProvider)));
 
         // then
         result.andExpect(status().isOk())
@@ -240,7 +244,7 @@ class ReservationControllerTest {
         // when
         ResultActions result = mockMvc.perform(
                 delete("/reservations/{id}", NOT_FOUND_ID)
-                        .with(loginMember()));
+                        .with(loginMember(jwtTokenProvider)));
 
         // then
         result.andExpect(status().isNotFound())
@@ -261,7 +265,7 @@ class ReservationControllerTest {
 
         // when
         ResultActions result = mockMvc.perform(delete("/reservations/{id}", reservation.getId())
-                .with(loginMember()));
+                .with(loginMember(jwtTokenProvider)));
 
         // then
         result.andExpect(status().isForbidden())
@@ -284,7 +288,7 @@ class ReservationControllerTest {
 
         // when
         ResultActions result = mockMvc.perform(post("/reservations")
-                .with(loginMember())
+                .with(loginMember(jwtTokenProvider))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)));
 
@@ -305,7 +309,7 @@ class ReservationControllerTest {
 
         // when
         ResultActions result = mockMvc.perform(post("/reservations")
-                .with(loginMember())
+                .with(loginMember(jwtTokenProvider))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)));
 
@@ -316,7 +320,7 @@ class ReservationControllerTest {
 
     private int postReservation(Map<String, Object> request) throws Exception {
         MvcResult result = mockMvc.perform(post("/reservations")
-                        .with(loginMember())
+                        .with(loginMember(jwtTokenProvider))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())

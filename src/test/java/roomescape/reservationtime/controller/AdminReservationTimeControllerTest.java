@@ -22,6 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
+import roomescape.auth.JwtTokenProvider;
 import roomescape.common.exception.DomainType;
 import roomescape.common.exception.NotFoundException;
 
@@ -41,6 +42,9 @@ class AdminReservationTimeControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
+
     @Test
     void 예약_시간을_추가한다() throws Exception {
         // given
@@ -48,7 +52,7 @@ class AdminReservationTimeControllerTest {
 
         // when
         ResultActions result = mockMvc.perform(post("/admin/times")
-                .with(loginMember())
+                .with(loginMember(jwtTokenProvider))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)));
 
@@ -65,7 +69,7 @@ class AdminReservationTimeControllerTest {
 
         // when
         ResultActions result = mockMvc.perform(delete("/admin/times/{id}", id)
-                .with(loginMember()));
+                .with(loginMember(jwtTokenProvider)));
 
         // then
         result.andExpect(status().isNoContent());
@@ -75,7 +79,7 @@ class AdminReservationTimeControllerTest {
     void 존재하지_않는_예약_시간을_삭제하면_404를_응답한다() throws Exception {
         // when
         ResultActions result = mockMvc.perform(delete("/admin/times/{id}", NOT_FOUND_ID)
-                .with(loginMember()));
+                .with(loginMember(jwtTokenProvider)));
 
         // then
         result.andExpect(status().isNotFound())
@@ -92,7 +96,7 @@ class AdminReservationTimeControllerTest {
 
         // when
         ResultActions result = mockMvc.perform(post("/admin/times")
-                .with(loginMember())
+                .with(loginMember(jwtTokenProvider))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)));
 
@@ -103,7 +107,7 @@ class AdminReservationTimeControllerTest {
 
     private int postReservationTime(Map<String, Object> request) throws Exception {
         MvcResult result = mockMvc.perform(post("/admin/times")
-                        .with(loginMember())
+                        .with(loginMember(jwtTokenProvider))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())

@@ -19,6 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
+import roomescape.auth.JwtTokenProvider;
 
 @Transactional
 @AutoConfigureMockMvc
@@ -36,6 +37,9 @@ class AdminThemeControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
+
     @Test
     void 테마를_추가한다() throws Exception {
         // given
@@ -43,7 +47,7 @@ class AdminThemeControllerTest {
 
         // when
         ResultActions result = mockMvc.perform(post("/admin/themes")
-                .with(loginMember())
+                .with(loginMember(jwtTokenProvider))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)));
 
@@ -63,7 +67,7 @@ class AdminThemeControllerTest {
 
         // when
         ResultActions result = mockMvc.perform(delete("/admin/themes/{id}", id)
-                .with(loginMember()));
+                .with(loginMember(jwtTokenProvider)));
 
         // then
         result.andExpect(status().isNoContent());
@@ -71,7 +75,7 @@ class AdminThemeControllerTest {
 
     private int postTheme(Map<String, Object> request) throws Exception {
         MvcResult result = mockMvc.perform(post("/admin/themes")
-                        .with(loginMember())
+                        .with(loginMember(jwtTokenProvider))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
