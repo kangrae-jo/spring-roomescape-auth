@@ -2,7 +2,6 @@ package roomescape.auth;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import roomescape.common.exception.UnauthorizedException;
@@ -10,20 +9,36 @@ import roomescape.common.exception.UnauthorizedException;
 @Component
 public class LoginCheckInterceptor implements HandlerInterceptor {
 
-    private static final String LOGIN_MEMBER_ID = "loginMemberId";
+    public static final String AUTHENTICATED_MEMBER_ID = "authenticatedMemberId";
+    private static final String AUTHORIZATION_HEADER = "Authorization";
+    private static final String BEARER_PREFIX = "Bearer ";
+
+    private final JwtTokenProvider jwtTokenProvider;
+
+    public LoginCheckInterceptor(JwtTokenProvider jwtTokenProvider) {
+        this.jwtTokenProvider = jwtTokenProvider;
+    }
 
     @Override
     public boolean preHandle(
             HttpServletRequest request,
             HttpServletResponse response,
             Object handler
-    ) throws Exception {
-        HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute(LOGIN_MEMBER_ID) == null) {
+    ) {
+        String authorization = request.getHeader(AUTHORIZATION_HEADER);
+        if (authorization == null || !authorization.startsWith(BEARER_PREFIX)) {
             throw new UnauthorizedException();
         }
-        return true;
 
+        String token = authorization.substring(BEARER_PREFIX.length()).strip();
+        if (token.isBlank()) {
+            throw new UnauthorizedException();
+        }
+
+        Long memberId = jwtTokenProvider.getMemberId(token);
+        request.setAttribute(AUTHENTICATED_MEMBER_ID, memberId);
+
+        return true;
     }
 
 }
