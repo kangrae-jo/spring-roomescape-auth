@@ -5,6 +5,7 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import java.security.Key;
+import java.time.Clock;
 import java.util.Base64;
 import java.util.Date;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,21 +17,23 @@ public class JwtTokenProvider {
 
     private final Key secretKey;
     private final long validityInMilliseconds;
+    private final Clock clock;
 
     public JwtTokenProvider(
             @Value("${security.jwt.token.secret-key}")
             String rawSecretKey,
             @Value("${security.jwt.token.expire-length}")
-            long validityInMilliseconds
+            long validityInMilliseconds,
+            Clock clock
     ) {
         byte[] keyBytes = Base64.getDecoder().decode(rawSecretKey);
         this.secretKey = Keys.hmacShaKeyFor(keyBytes);
         this.validityInMilliseconds = validityInMilliseconds;
+        this.clock = clock;
     }
 
-    // TODO: 시간 app server와 동기화
     public String createToken(Long memberId) {
-        Date now = new Date();
+        Date now = now();
         Date validity = new Date(now.getTime() + validityInMilliseconds);
 
         return Jwts.builder()
@@ -45,6 +48,7 @@ public class JwtTokenProvider {
         try {
             Claims claims = Jwts.parserBuilder()
                     .setSigningKey(secretKey)
+                    .setClock(this::now)
                     .build()
                     .parseClaimsJws(token)
                     .getBody();
@@ -53,6 +57,10 @@ public class JwtTokenProvider {
         } catch (JwtException | IllegalArgumentException e) {
             throw new UnauthorizedException();
         }
+    }
+
+    private Date now() {
+        return Date.from(clock.instant());
     }
 
 }
