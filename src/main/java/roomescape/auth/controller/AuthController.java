@@ -1,7 +1,7 @@
 package roomescape.auth.controller;
 
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
+import java.net.URI;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -30,8 +30,9 @@ public class AuthController {
     public ResponseEntity<Void> register(
             @Valid @RequestBody RegisterMemberRequest request
     ) {
-        authService.register(request);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        Member member = authService.register(request);
+        URI location = URI.create("/members/" + member.getId());
+        return ResponseEntity.created(location).build();
     }
 
     @PostMapping("/login")
