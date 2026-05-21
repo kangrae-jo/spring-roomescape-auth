@@ -10,15 +10,17 @@ VALUES ('10:00'),
 
 INSERT INTO member (name, role)
 VALUES ('밀란', 'ADMIN'),
-       ('봉구스', 'GUEST');
+       ('봉구스', 'GUEST'),
+       ('어드민', 'ADMIN');
 
 INSERT INTO auth_credential (member_id, password_hash)
 VALUES (1, '$2y$10$BdKb4loIDkFnStCRLEo0muqSu/mGmTq63hZbG1O./dM9gtpfHBOny'),
-       (2, '$2y$10$BdKb4loIDkFnStCRLEo0muqSu/mGmTq63hZbG1O./dM9gtpfHBOny');
+       (2, '$2y$10$BdKb4loIDkFnStCRLEo0muqSu/mGmTq63hZbG1O./dM9gtpfHBOny'),
+       (3, '$2y$10$BdKb4loIDkFnStCRLEo0muqSu/mGmTq63hZbG1O./dM9gtpfHBOny');
 
 INSERT INTO store (member_id)
 VALUES (1),
-       (2);
+       (3);
 
 INSERT INTO reservation (name, date, time_id, theme_id, store_id)
 VALUES ('봉구스', '2026-05-06', 1, 1, 1),

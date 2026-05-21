@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import roomescape.auth.LoginMember;
+import roomescape.member.entity.Member;
 import roomescape.reservation.payload.ReservationResponse;
 import roomescape.reservation.service.ReservationService;
 
@@ -22,8 +24,10 @@ public class AdminReservationController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ReservationResponse>> getAllReservations() {
-        List<ReservationResponse> reservationResponses = reservationService.findAll().stream()
+    public ResponseEntity<List<ReservationResponse>> getAllReservations(
+            @LoginMember Member member
+    ) {
+        List<ReservationResponse> reservationResponses = reservationService.findAll(member).stream()
                 .map(ReservationResponse::from)
                 .toList();
 
@@ -33,9 +37,10 @@ public class AdminReservationController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteReservation(
+            @LoginMember Member member,
             @PathVariable Long id
     ) {
-        reservationService.deleteById(id);
+        reservationService.deleteById(id, member);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 

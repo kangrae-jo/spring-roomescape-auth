@@ -21,6 +21,10 @@ public class Store {
         return new Store(id, manager);
     }
 
+    public boolean isManagerOf(Member member) {
+        return manager.equals(member);
+    }
+
     public Long getId() {
         return id;
     }

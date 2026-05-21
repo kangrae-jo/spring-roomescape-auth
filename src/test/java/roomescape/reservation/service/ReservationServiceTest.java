@@ -65,11 +65,12 @@ class ReservationServiceTest {
     @Autowired
     private MemberRepository memberRepository;
 
+    private Member manager;
     private Store store;
 
     @BeforeEach
     void setUp() {
-        Member manager = memberRepository.save(Member.create("manager-" + System.nanoTime()));
+        manager = memberRepository.save(Member.create("manager-" + System.nanoTime()));
         store = storeService.save(storeRequest(manager.getId()));
     }
 
@@ -148,7 +149,7 @@ class ReservationServiceTest {
         Reservation reservation2 = reservationService.save(reservationRequest2, DEFAULT_RESERVATION_NAME);
 
         // when
-        List<Reservation> reservations = reservationService.findAll();
+        List<Reservation> reservations = reservationService.findAll(manager);
 
         // then
         assertThat(reservations).contains(reservation1, reservation2);
@@ -232,7 +233,7 @@ class ReservationServiceTest {
         Reservation reservation = reservationService.save(reservationRequest, DEFAULT_RESERVATION_NAME);
 
         // when
-        List<Reservation> reservations = reservationService.findAll();
+        List<Reservation> reservations = reservationService.findAll(manager);
 
         // then
         assertThat(reservations).contains(reservation);
@@ -251,10 +252,10 @@ class ReservationServiceTest {
         Reservation reservation = reservationService.save(reservationRequest, DEFAULT_RESERVATION_NAME);
 
         // when
-        reservationService.deleteById(reservation.getId());
+        reservationService.deleteById(reservation.getId(), manager);
 
         // then
-        List<Reservation> reservations = reservationService.findAll();
+        List<Reservation> reservations = reservationService.findAll(manager);
         assertThat(reservations).doesNotContain(reservation);
     }
 
@@ -280,7 +281,7 @@ class ReservationServiceTest {
         reservationService.deleteByIdAndName(reservation.getId(), reservation.getName());
 
         // then
-        List<Reservation> reservations = reservationService.findAll();
+        List<Reservation> reservations = reservationService.findAll(manager);
         assertThat(reservations).doesNotContain(reservation);
         assertThat(reservations).contains(sameNameReservation);
     }
@@ -300,13 +301,13 @@ class ReservationServiceTest {
         // when & then
         assertThatThrownBy(() -> reservationService.deleteByIdAndName(reservation.getId(), OTHER_RESERVATION_NAME))
                 .isInstanceOf(AccessDeniedException.class);
-        assertThat(reservationService.findAll()).contains(reservation);
+        assertThat(reservationService.findAll(manager)).contains(reservation);
     }
 
     @Test
     void 없는_예약을_삭제하면_에러를_던진다() {
         // when & then
-        assertThatThrownBy(() -> reservationService.deleteById(NOT_FOUND_ID))
+        assertThatThrownBy(() -> reservationService.deleteById(NOT_FOUND_ID, manager))
                 .isInstanceOf(NotFoundException.class);
     }
 

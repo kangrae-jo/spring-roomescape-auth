@@ -68,11 +68,12 @@ class JdbcReservationRepositoryTest {
     @Autowired
     private StoreRepository storeRepository;
 
+    private Member manager;
     private Store store;
 
     @BeforeEach
     void setUp() {
-        Member manager = memberRepository.save(member("manager-" + System.nanoTime()));
+        manager = memberRepository.save(member("manager-" + System.nanoTime()));
         store = storeRepository.save(store(manager));
     }
 
@@ -155,7 +156,7 @@ class JdbcReservationRepositoryTest {
         Reservation savedReservation = reservationRepository.save(reservation);
 
         // when
-        List<Reservation> reservations = reservationRepository.findAll();
+        List<Reservation> reservations = reservationRepository.findAll(manager.getId());
 
         // then
         assertThat(reservations).containsExactly(savedReservation);
@@ -178,7 +179,7 @@ class JdbcReservationRepositoryTest {
         reservationRepository.deleteById(savedReservation.getId());
 
         // then
-        List<Reservation> reservations = reservationRepository.findAll();
+        List<Reservation> reservations = reservationRepository.findAll(manager.getId());
         assertThat(reservations).doesNotContain(savedReservation);
     }
 

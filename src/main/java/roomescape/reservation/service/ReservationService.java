@@ -11,6 +11,7 @@ import roomescape.common.exception.AccessDeniedException;
 import roomescape.common.exception.DomainType;
 import roomescape.common.exception.NotFoundException;
 import roomescape.common.exception.PastDateTimeException;
+import roomescape.member.entity.Member;
 import roomescape.reservation.entity.Reservation;
 import roomescape.reservation.payload.ReservationRequest;
 import roomescape.reservation.payload.ReservationUpdateRequest;
@@ -82,8 +83,8 @@ public class ReservationService {
     }
 
     @Transactional(readOnly = true)
-    public List<Reservation> findAll() {
-        return reservationRepository.findAll();
+    public List<Reservation> findAll(Member member) {
+        return reservationRepository.findAll(member.getId());
     }
 
     @Transactional(readOnly = true)
@@ -92,14 +93,12 @@ public class ReservationService {
     }
 
     @Transactional
-    public void deleteById(Long id) {
+    public void deleteById(Long id, Member member) {
         Reservation reservation = getById(id);
-        validatePastReservation(reservation.getDate(), reservation.getTime().getStartAt());
-
-        int affected = reservationRepository.deleteById(id);
-        if (affected == 0) {
-            throw new NotFoundException(DomainType.RESERVATION, id);
+        if (!reservation.getStore().isManagerOf(member)) {
+            throw new AccessDeniedException(DomainType.RESERVATION, id);
         }
+        delete(id, reservation);
     }
 
     @Transactional
@@ -108,7 +107,10 @@ public class ReservationService {
         if (!reservation.isOwner(name)) {
             throw new AccessDeniedException(DomainType.RESERVATION, id);
         }
+        delete(id, reservation);
+    }
 
+    private void delete(Long id, Reservation reservation) {
         validatePastReservation(reservation.getDate(), reservation.getTime().getStartAt());
 
         int affected = reservationRepository.deleteById(id);
