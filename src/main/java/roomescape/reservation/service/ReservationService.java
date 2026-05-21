@@ -16,42 +16,42 @@ import roomescape.reservation.payload.ReservationRequest;
 import roomescape.reservation.payload.ReservationUpdateRequest;
 import roomescape.reservation.repository.ReservationRepository;
 import roomescape.reservationtime.entity.ReservationTime;
-import roomescape.reservationtime.service.ReservationTimeService;
+import roomescape.reservationtime.repository.ReservationTimeRepository;
 import roomescape.store.entity.Store;
-import roomescape.store.service.StoreService;
+import roomescape.store.repository.StoreRepository;
 import roomescape.theme.entity.Theme;
-import roomescape.theme.service.ThemeService;
+import roomescape.theme.repository.ThemeRepository;
 
 @Service
 public class ReservationService {
 
     private final ReservationRepository reservationRepository;
-    private final ReservationTimeService reservationTimeService;
-    private final ThemeService themeService;
-    private final StoreService storeService;
+    private final ReservationTimeRepository reservationTimeRepository;
+    private final ThemeRepository themeRepository;
+    private final StoreRepository storeRepository;
     private final Clock clock;
 
     public ReservationService(
             ReservationRepository reservationRepository,
-            ReservationTimeService reservationTimeService,
-            ThemeService themeService,
-            StoreService storeService,
+            ReservationTimeRepository reservationTimeRepository,
+            ThemeRepository themeRepository,
+            StoreRepository storeRepository,
             Clock clock
     ) {
         this.reservationRepository = reservationRepository;
-        this.reservationTimeService = reservationTimeService;
-        this.themeService = themeService;
-        this.storeService = storeService;
+        this.reservationTimeRepository = reservationTimeRepository;
+        this.themeRepository = themeRepository;
+        this.storeRepository = storeRepository;
         this.clock = clock;
     }
 
     @Transactional
     public Reservation save(ReservationRequest request, String name) {
-        ReservationTime reservationTime = reservationTimeService.getById(request.timeId());
+        ReservationTime reservationTime = getReservationTimeById(request.timeId());
         validatePastReservation(request.date(), reservationTime.getStartAt());
 
-        Theme theme = themeService.getById(request.themeId());
-        Store store = storeService.getById(request.storeId());
+        Theme theme = getThemeById(request.themeId());
+        Store store = getStoreById(request.storeId());
 
         Reservation reservation = Reservation.create(
                 name,
@@ -71,7 +71,7 @@ public class ReservationService {
         }
         validatePastReservation(reservation.getDate(), reservation.getTime().getStartAt());
 
-        ReservationTime reservationTime = reservationTimeService.getById(request.timeId());
+        ReservationTime reservationTime = getReservationTimeById(request.timeId());
         validatePastReservation(request.date(), reservationTime.getStartAt());
 
         return reservationRepository.update(
@@ -120,6 +120,21 @@ public class ReservationService {
     private Reservation getById(Long id) {
         return reservationRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(DomainType.RESERVATION, id));
+    }
+
+    private ReservationTime getReservationTimeById(Long id) {
+        return reservationTimeRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(DomainType.RESERVATION_TIME, id));
+    }
+
+    private Theme getThemeById(Long id) {
+        return themeRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(DomainType.THEME, id));
+    }
+
+    private Store getStoreById(Long id) {
+        return storeRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(DomainType.STORE, id));
     }
 
     private void validatePastReservation(LocalDate requestDate, LocalTime requestTime) {

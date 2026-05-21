@@ -9,24 +9,24 @@ import roomescape.common.exception.NotFoundException;
 import roomescape.reservationtime.entity.ReservationTime;
 import roomescape.reservationtime.payload.ReservationTimeRequest;
 import roomescape.reservationtime.repository.ReservationTimeRepository;
-import roomescape.store.service.StoreService;
-import roomescape.theme.service.ThemeService;
+import roomescape.store.repository.StoreRepository;
+import roomescape.theme.repository.ThemeRepository;
 
 @Service
 public class ReservationTimeService {
 
     private final ReservationTimeRepository reservationTimeRepository;
-    private final ThemeService themeService;
-    private final StoreService storeService;
+    private final ThemeRepository themeRepository;
+    private final StoreRepository storeRepository;
 
     public ReservationTimeService(
             ReservationTimeRepository reservationTimeRepository,
-            ThemeService themeService,
-            StoreService storeService
+            ThemeRepository themeRepository,
+            StoreRepository storeRepository
     ) {
         this.reservationTimeRepository = reservationTimeRepository;
-        this.themeService = themeService;
-        this.storeService = storeService;
+        this.themeRepository = themeRepository;
+        this.storeRepository = storeRepository;
     }
 
     @Transactional
@@ -42,8 +42,8 @@ public class ReservationTimeService {
 
     @Transactional(readOnly = true)
     public List<ReservationTime> findAvailableReservationTimes(LocalDate date, Long themeId, Long storeId) {
-        themeService.validateExists(themeId);
-        storeService.validateExists(storeId);
+        validateThemeExists(themeId);
+        validateStoreExists(storeId);
 
         return reservationTimeRepository.findAvailableTimesByDateAndThemeIdAndStoreId(date, themeId, storeId);
     }
@@ -55,11 +55,17 @@ public class ReservationTimeService {
             throw new NotFoundException(DomainType.RESERVATION_TIME, id);
         }
     }
+    
+    private void validateThemeExists(Long id) {
+        if (!themeRepository.existsById(id)) {
+            throw new NotFoundException(DomainType.THEME, id);
+        }
+    }
 
-    @Transactional(readOnly = true)
-    public ReservationTime getById(Long id) {
-        return reservationTimeRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(DomainType.RESERVATION_TIME, id));
+    private void validateStoreExists(Long id) {
+        if (!storeRepository.existsById(id)) {
+            throw new NotFoundException(DomainType.STORE, id);
+        }
     }
 
 }
