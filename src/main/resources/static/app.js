@@ -1,6 +1,7 @@
 const state = {
   reservations: [],
   myReservations: [],
+  stores: [],
   themes: [],
   times: [],
   availableTimes: [],
@@ -9,14 +10,17 @@ const state = {
   popularThemes: [],
   isAuthenticated: false,
   currentMemberName: "",
+  currentMemberRole: "",
   availability: {
     date: "",
+    storeId: "",
     themeId: "",
   },
 };
 
 const DEFAULT_THEME_IMAGE = "https://avatars.githubusercontent.com/u/177727543?v=4&size=64";
 const AUTH_MEMBER_NAME_KEY = "roomescape.memberName";
+const AUTH_MEMBER_ROLE_KEY = "roomescape.memberRole";
 const AUTH_ACCESS_TOKEN_KEY = "roomescape.accessToken";
 
 const $ = (selector) => document.querySelector(selector);
@@ -126,6 +130,7 @@ function bindEvents() {
   );
 
   $("#reservation-date").addEventListener("change", clearAvailabilitySelection);
+  $("#reservation-store").addEventListener("change", clearAvailabilitySelection);
   $("#reservation-theme").addEventListener("change", clearAvailabilitySelection);
   $("#login-name").addEventListener("input", () => clearInlineMessage("#auth-message"));
   $("#login-password").addEventListener("input", () => clearInlineMessage("#auth-message"));
@@ -141,9 +146,16 @@ function bindEvents() {
 }
 
 async function loadAll() {
-  await Promise.all([loadThemes(), loadTimes(), loadPopularThemes()]);
+  await Promise.all([loadStores(), loadThemes(), loadTimes(), loadPopularThemes()]);
   if (state.isAuthenticated) {
-    await Promise.all([loadReservations(), loadMyReservations({ quiet: true })]);
+    if (isAdmin()) {
+      await Promise.all([loadReservations(), loadMyReservations({ quiet: true })]);
+    } else {
+      state.reservations = [];
+      renderReservations();
+      renderHome();
+      await loadMyReservations({ quiet: true });
+    }
   } else {
     state.reservations = [];
     state.myReservations = [];
@@ -154,12 +166,24 @@ async function loadAll() {
   renderReservationOptions();
 }
 
+async function loadStores() {
+  state.stores = await request("/stores");
+  renderReservationOptions();
+}
+
 async function loadReservations() {
   if (!state.isAuthenticated) {
     state.reservations = [];
     renderReservations();
     renderHome();
     throw new Error("로그인이 필요합니다.");
+  }
+
+  if (!isAdmin()) {
+    state.reservations = [];
+    renderReservations();
+    renderHome();
+    throw new Error("관리자 권한이 필요합니다.");
   }
 
   state.reservations = await request("/admin/reservations");
@@ -182,13 +206,14 @@ async function loadTimes() {
 
 async function loadAvailableTimes() {
   const date = $("#reservation-date").value;
+  const storeId = $("#reservation-store").value;
   const themeId = $("#reservation-theme").value;
-  if (!date || !themeId) {
-    throw new Error("날짜와 테마를 선택해주세요.");
+  if (!date || !storeId || !themeId) {
+    throw new Error("날짜, 매장, 테마를 선택해주세요.");
   }
 
-  state.availableTimes = await request(`/times/available?date=${date}&themeId=${themeId}`);
-  state.availability = { date, themeId };
+  state.availableTimes = await request(`/times/available?date=${date}&storeId=${storeId}&themeId=${themeId}`);
+  state.availability = { date, storeId, themeId };
   renderAvailableTimes();
   renderReservationCondition();
 }
@@ -202,14 +227,16 @@ async function loadPopularThemes() {
 
 function restoreAuthState() {
   const memberName = sessionStorage.getItem(AUTH_MEMBER_NAME_KEY);
+  const memberRole = sessionStorage.getItem(AUTH_MEMBER_ROLE_KEY);
   const accessToken = sessionStorage.getItem(AUTH_ACCESS_TOKEN_KEY);
-  if (!memberName || !accessToken) {
+  if (!memberName || !memberRole || !accessToken) {
     setUnauthenticated();
     return;
   }
 
   state.isAuthenticated = true;
   state.currentMemberName = memberName;
+  state.currentMemberRole = memberRole;
 }
 
 async function register() {
@@ -247,7 +274,7 @@ async function loginWithCredentials(name, password) {
     method: "POST",
     body: JSON.stringify({ name, password }),
   });
-  setAuthenticated(name, response.accessToken);
+  setAuthenticated(name, response.accessToken, response.role);
   await loadAll();
 }
 
@@ -258,10 +285,12 @@ async function logout() {
   showToast("로그아웃되었습니다.");
 }
 
-function setAuthenticated(name, accessToken) {
+function setAuthenticated(name, accessToken, role) {
   state.isAuthenticated = true;
   state.currentMemberName = name;
+  state.currentMemberRole = role;
   sessionStorage.setItem(AUTH_MEMBER_NAME_KEY, name);
+  sessionStorage.setItem(AUTH_MEMBER_ROLE_KEY, role);
   sessionStorage.setItem(AUTH_ACCESS_TOKEN_KEY, accessToken);
   renderAuthState();
 }
@@ -269,11 +298,13 @@ function setAuthenticated(name, accessToken) {
 function setUnauthenticated() {
   state.isAuthenticated = false;
   state.currentMemberName = "";
+  state.currentMemberRole = "";
   state.reservations = [];
   state.myReservations = [];
   state.editableTimesByReservationId = {};
   state.reservationDraftsById = {};
   sessionStorage.removeItem(AUTH_MEMBER_NAME_KEY);
+  sessionStorage.removeItem(AUTH_MEMBER_ROLE_KEY);
   sessionStorage.removeItem(AUTH_ACCESS_TOKEN_KEY);
   renderAuthState();
 }
@@ -290,12 +321,12 @@ function closeAuthModal() {
 }
 
 async function createReservation() {
-  const { date, themeId } = state.availability;
+  const { date, storeId, themeId } = state.availability;
   if (!state.isAuthenticated) {
     throw new Error("로그인이 필요합니다.");
   }
 
-  if (!date || !themeId) {
+  if (!date || !storeId || !themeId) {
     throw new Error("가능 시간을 먼저 조회해주세요.");
   }
 
@@ -307,6 +338,7 @@ async function createReservation() {
     date,
     timeId: Number($("#selected-time").value),
     themeId: Number(themeId),
+    storeId: Number(storeId),
   };
 
   await request("/reservations", {
@@ -316,10 +348,10 @@ async function createReservation() {
 
   $("#reservation-form").reset();
   setToday();
+  $("#reservation-store").value = "";
   $("#reservation-theme").value = "";
   clearAvailabilitySelection();
-  await loadReservations();
-  await loadMyReservations({ quiet: true });
+  await reloadReservationViews();
   showToast("예약이 생성되었습니다.");
 }
 
@@ -410,10 +442,11 @@ async function loadMyReservations(options = {}) {
 async function loadEditableTimesForReservation(reservation, date, options = {}) {
   const reservationId = String(reservation.id);
   const themeId = reservation.theme?.id;
+  const storeId = reservation.store?.id;
   const draft = getReservationDraft(reservation);
   draft.date = date;
 
-  if (!themeId || !date) {
+  if (!themeId || !storeId || !date) {
     state.editableTimesByReservationId[reservationId] = mergeTimes([reservation.time]);
     return;
   }
@@ -421,7 +454,7 @@ async function loadEditableTimesForReservation(reservation, date, options = {}) 
   let availableTimes = [];
   try {
     availableTimes = await request(
-      `/times/available?date=${encodeURIComponent(date)}&themeId=${encodeURIComponent(themeId)}`,
+      `/times/available?date=${encodeURIComponent(date)}&storeId=${encodeURIComponent(storeId)}&themeId=${encodeURIComponent(themeId)}`,
       { quiet: options.quiet }
     );
   } catch (error) {
@@ -465,7 +498,7 @@ async function updateMyReservation(event) {
       }),
     });
 
-    await Promise.all([loadReservations(), loadMyReservations({ quiet: true })]);
+    await reloadReservationViews();
     showToast("예약이 변경되었습니다.");
   });
 }
@@ -513,9 +546,21 @@ async function handleMyReservationClick(event) {
     }
 
     await request(`/reservations/${reservation.id}`, { method: "DELETE" });
-    await Promise.all([loadReservations(), loadMyReservations({ quiet: true })]);
+    await reloadReservationViews();
     showToast("예약이 취소되었습니다.");
   });
+}
+
+async function reloadReservationViews() {
+  if (isAdmin()) {
+    await Promise.all([loadReservations(), loadMyReservations({ quiet: true })]);
+    return;
+  }
+
+  state.reservations = [];
+  renderReservations();
+  renderHome();
+  await loadMyReservations({ quiet: true });
 }
 
 async function request(path, options = {}) {
@@ -594,6 +639,10 @@ function renderAuthState() {
   button.classList.toggle("signed-in", state.isAuthenticated);
 }
 
+function isAdmin() {
+  return state.currentMemberRole === "ADMIN";
+}
+
 function renderHome() {
   $("#theme-count").textContent = state.themes.length;
   $("#time-count").textContent = state.times.length;
@@ -611,11 +660,21 @@ function renderPopularThemes() {
 }
 
 function renderReservationOptions() {
+  const currentStoreId = $("#reservation-store").value;
   const currentThemeId = $("#reservation-theme").value;
+  const storeOptions = [
+    `<option value="">매장 선택</option>`,
+    ...state.stores.map((store) => `<option value="${store.id}">${storeLabel(store)}</option>`),
+  ].join("");
   const themeOptions = [
     `<option value="">테마 선택</option>`,
     ...state.themes.map((theme) => `<option value="${theme.id}">${escapeHtml(theme.name)}</option>`),
   ].join("");
+
+  $("#reservation-store").innerHTML = storeOptions;
+  if (state.stores.some((store) => String(store.id) === currentStoreId)) {
+    $("#reservation-store").value = currentStoreId;
+  }
 
   $("#reservation-theme").innerHTML = themeOptions;
   if (state.themes.some((theme) => String(theme.id) === currentThemeId)) {
@@ -635,7 +694,7 @@ function renderAvailableTimes() {
 
   const emptyMessage = state.availability.date
     ? "예약 가능한 시간이 없습니다."
-    : "날짜와 테마를 선택한 뒤 가능 시간 조회를 눌러주세요.";
+    : "날짜, 매장, 테마를 선택한 뒤 가능 시간 조회를 눌러주세요.";
 
   $("#available-time-list").innerHTML = buttons.length
     ? buttons.join("")
@@ -659,10 +718,11 @@ function renderAvailableTimes() {
 
 function renderReservationCondition() {
   const condition = $("#reservation-condition");
-  const { date, themeId } = state.availability;
+  const { date, storeId, themeId } = state.availability;
+  const store = state.stores.find((item) => String(item.id) === String(storeId));
   const theme = state.themes.find((item) => String(item.id) === String(themeId));
 
-  if (!date || !theme) {
+  if (!date || !store || !theme) {
     condition.textContent = "조회 조건 없음";
     condition.classList.add("empty-condition");
     return;
@@ -670,6 +730,7 @@ function renderReservationCondition() {
 
   condition.innerHTML = `
     <span>${escapeHtml(date)}</span>
+    <span>${storeLabel(store)}</span>
     <span>${escapeHtml(theme.name)}</span>
   `;
   condition.classList.remove("empty-condition");
@@ -677,7 +738,7 @@ function renderReservationCondition() {
 
 function clearAvailabilitySelection() {
   state.availableTimes = [];
-  state.availability = { date: "", themeId: "" };
+  state.availability = { date: "", storeId: "", themeId: "" };
   $("#selected-time").value = "";
   clearInlineMessage("#availability-message");
   clearInlineMessage("#reservation-message");
@@ -687,7 +748,7 @@ function clearAvailabilitySelection() {
 
 function renderReservations() {
   if (!state.isAuthenticated) {
-    $("#reservation-rows").innerHTML = `<tr><td colspan="6" class="empty">로그인하면 예약 목록이 표시됩니다.</td></tr>`;
+    $("#reservation-rows").innerHTML = `<tr><td colspan="7" class="empty">로그인하면 예약 목록이 표시됩니다.</td></tr>`;
     return;
   }
 
@@ -697,12 +758,13 @@ function renderReservations() {
           <td>${reservation.id}</td>
           <td>${escapeHtml(reservation.name)}</td>
           <td>${reservation.date}</td>
+          <td>${storeLabel(reservation.store)}</td>
           <td>${escapeHtml(reservation.theme?.name ?? "-")}</td>
           <td>${formatTime(reservation.time?.startAt)}</td>
           <td><button class="danger" type="button" onclick="deleteReservation(${reservation.id})">삭제</button></td>
         </tr>
       `).join("")
-    : `<tr><td colspan="6" class="empty">예약이 없습니다.</td></tr>`;
+    : `<tr><td colspan="7" class="empty">예약이 없습니다.</td></tr>`;
 }
 
 function renderMyReservations() {
@@ -728,7 +790,7 @@ function myReservationItem(reservation) {
       <div class="reservation-main">
         <div>
           <strong>${escapeHtml(reservation.theme?.name ?? "테마 없음")}</strong>
-          <span>${escapeHtml(reservation.name)} · ${escapeHtml(reservation.date)} · ${formatTime(reservation.time?.startAt)}</span>
+          <span>${escapeHtml(reservation.name)} · ${storeLabel(reservation.store)} · ${escapeHtml(reservation.date)} · ${formatTime(reservation.time?.startAt)}</span>
         </div>
         <span class="reservation-id">#${reservation.id}</span>
       </div>
@@ -814,6 +876,13 @@ function timeOptions(times, selectedTimeId) {
       ${formatTime(time.startAt)}
     </option>
   `).join("");
+}
+
+function storeLabel(store) {
+  if (!store) {
+    return "-";
+  }
+  return `#${store.id} ${escapeHtml(store.managerName ?? "매장")}`;
 }
 
 function renderTimeSelects() {
