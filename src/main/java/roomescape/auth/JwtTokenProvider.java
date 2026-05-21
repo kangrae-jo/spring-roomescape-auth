@@ -11,9 +11,12 @@ import java.util.Date;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import roomescape.common.exception.UnauthorizedException;
+import roomescape.member.entity.Role;
 
 @Component
 public class JwtTokenProvider {
+
+    private static final String ROLE_CLAIM = "role";
 
     private final Key secretKey;
     private final long validityInMilliseconds;
@@ -32,12 +35,13 @@ public class JwtTokenProvider {
         this.clock = clock;
     }
 
-    public String createToken(Long memberId) {
+    public String createToken(Long memberId, Role role) {
         Date now = now();
         Date validity = new Date(now.getTime() + validityInMilliseconds);
 
         return Jwts.builder()
                 .setSubject(String.valueOf(memberId))
+                .claim(ROLE_CLAIM, role.name())
                 .setIssuedAt(now)
                 .setExpiration(validity)
                 .signWith(secretKey)
@@ -46,17 +50,29 @@ public class JwtTokenProvider {
 
     public Long getMemberId(String token) {
         try {
-            Claims claims = Jwts.parserBuilder()
-                    .setSigningKey(secretKey)
-                    .setClock(this::now)
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
-
+            Claims claims = getClaims(token);
             return Long.parseLong(claims.getSubject());
         } catch (JwtException | IllegalArgumentException e) {
             throw new UnauthorizedException();
         }
+    }
+
+    public Role getMemberRole(String token) {
+        try {
+            Claims claims = getClaims(token);
+            return Role.valueOf(claims.get(ROLE_CLAIM, String.class));
+        } catch (JwtException | IllegalArgumentException | NullPointerException e) {
+            throw new UnauthorizedException();
+        }
+    }
+
+    private Claims getClaims(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(secretKey)
+                .setClock(this::now)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 
     private Date now() {

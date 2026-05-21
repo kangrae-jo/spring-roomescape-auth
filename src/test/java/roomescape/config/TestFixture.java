@@ -7,6 +7,7 @@ import java.util.Map;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import roomescape.auth.JwtTokenProvider;
 import roomescape.member.entity.Member;
+import roomescape.member.entity.Role;
 import roomescape.reservation.entity.Reservation;
 import roomescape.reservation.payload.ReservationRequest;
 import roomescape.reservation.payload.ReservationUpdateRequest;
@@ -148,8 +149,12 @@ public final class TestFixture {
     }
 
     public static RequestPostProcessor loginMember(JwtTokenProvider jwtTokenProvider) {
+        return loginMember(jwtTokenProvider, LOGIN_MEMBER_ID, Role.ADMIN);
+    }
+
+    public static RequestPostProcessor loginMember(JwtTokenProvider jwtTokenProvider, Long memberId, Role role) {
         return request -> {
-            String accessToken = jwtTokenProvider.createToken(LOGIN_MEMBER_ID);
+            String accessToken = jwtTokenProvider.createToken(memberId, role);
             request.addHeader("Authorization", "Bearer " + accessToken);
             return request;
         };

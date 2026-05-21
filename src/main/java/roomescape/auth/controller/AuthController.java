@@ -40,7 +40,7 @@ public class AuthController {
             @Valid @RequestBody LoginRequest request
     ) {
         Member member = authService.login(request);
-        String accessToken = jwtTokenProvider.createToken(member.getId());
+        String accessToken = jwtTokenProvider.createToken(member.getId(), member.getRole());
 
         return ResponseEntity.ok(new LoginResponse(accessToken));
     }

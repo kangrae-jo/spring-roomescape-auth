@@ -23,8 +23,10 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 import roomescape.auth.JwtTokenProvider;
+import roomescape.common.exception.AccessDeniedException;
 import roomescape.common.exception.DomainType;
 import roomescape.common.exception.NotFoundException;
+import roomescape.member.entity.Role;
 
 @Transactional
 @AutoConfigureMockMvc
@@ -34,6 +36,7 @@ class AdminReservationTimeControllerTest {
 
     private static final String START_AT = "11:00";
     private static final String START_AT_RESPONSE = "11:00:00";
+    private static final Long GUEST_MEMBER_ID = 2L;
     private static final int NOT_FOUND_ID = 999;
 
     @Autowired
@@ -85,6 +88,24 @@ class AdminReservationTimeControllerTest {
         result.andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value(containsString(
                         NotFoundException.clientMessage(DomainType.RESERVATION_TIME)
+                )));
+    }
+
+    @Test
+    void 게스트가_예약_시간을_추가하면_403을_응답한다() throws Exception {
+        // given
+        Map<String, Object> request = reservationTimeRequestBody(START_AT);
+
+        // when
+        ResultActions result = mockMvc.perform(post("/admin/times")
+                .with(loginMember(jwtTokenProvider, GUEST_MEMBER_ID, Role.GUEST))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)));
+
+        // then
+        result.andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value(containsString(
+                        AccessDeniedException.clientMessage(DomainType.MEMBER.displayName())
                 )));
     }
 

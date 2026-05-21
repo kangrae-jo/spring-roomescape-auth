@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import roomescape.auth.AdminAuthorizationInterceptor;
 import roomescape.auth.LoginCheckInterceptor;
 import roomescape.auth.LoginMemberArgumentResolver;
 import roomescape.member.repository.MemberRepository;
@@ -22,13 +23,16 @@ public class AuthenticationPrincipalConfig implements WebMvcConfigurer {
     };
 
     private final LoginCheckInterceptor loginCheckInterceptor;
+    private final AdminAuthorizationInterceptor adminAuthorizationInterceptor;
     private final MemberRepository memberRepository;
 
     public AuthenticationPrincipalConfig(
             LoginCheckInterceptor loginCheckInterceptor,
+            AdminAuthorizationInterceptor adminAuthorizationInterceptor,
             MemberRepository memberRepository
     ) {
         this.loginCheckInterceptor = loginCheckInterceptor;
+        this.adminAuthorizationInterceptor = adminAuthorizationInterceptor;
         this.memberRepository = memberRepository;
     }
 
@@ -44,6 +48,9 @@ public class AuthenticationPrincipalConfig implements WebMvcConfigurer {
                         "/times/**",
                         "/themes/**"
                 );
+
+        registry.addInterceptor(adminAuthorizationInterceptor)
+                .addPathPatterns("/admin/**");
     }
 
     @Override
