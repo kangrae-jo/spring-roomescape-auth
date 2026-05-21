@@ -16,6 +16,7 @@ import org.springframework.stereotype.Repository;
 import roomescape.common.exception.DomainType;
 import roomescape.common.exception.DuplicatedException;
 import roomescape.member.entity.Member;
+import roomescape.member.entity.Role;
 import roomescape.reservation.entity.Reservation;
 import roomescape.reservationtime.entity.ReservationTime;
 import roomescape.store.entity.Store;
@@ -38,7 +39,8 @@ public class JdbcReservationRepository implements ReservationRepository {
                 t.runtime,
                 s.id AS store_id,
                 m.id AS manager_id,
-                m.name AS manager_name
+                m.name AS manager_name,
+                m.role AS manager_role
             FROM reservation r
             INNER JOIN reservation_time rt
                 ON r.time_id = rt.id
@@ -71,7 +73,8 @@ public class JdbcReservationRepository implements ReservationRepository {
                             rs.getLong("store_id"),
                             Member.of(
                                     rs.getLong("manager_id"),
-                                    rs.getString("manager_name")
+                                    rs.getString("manager_name"),
+                                    Role.valueOf(rs.getString("manager_role"))
                             )
                     )
             );

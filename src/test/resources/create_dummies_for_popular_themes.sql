@@ -47,8 +47,8 @@ VALUES ('테마1', '테마1 설명', 'https://example.com/themes/theme-1.png', 6
 ALTER TABLE member
     ALTER COLUMN id RESTART WITH 1;
 
-INSERT INTO member (name)
-VALUES ('manager');
+INSERT INTO member (name, role)
+VALUES ('manager', 'ADMIN');
 
 ALTER TABLE store
     ALTER COLUMN id RESTART WITH 1;

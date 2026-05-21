@@ -8,9 +8,9 @@ VALUES ('10:00'),
        ('13:00'),
        ('16:00');
 
-INSERT INTO member (name)
-VALUES ('봉구스'),
-       ('밀란');
+INSERT INTO member (name, role)
+VALUES ('밀란', 'ADMIN'),
+       ('봉구스', 'GUEST');
 
 INSERT INTO auth_credential (member_id, password_hash)
 VALUES (1, '$2y$10$BdKb4loIDkFnStCRLEo0muqSu/mGmTq63hZbG1O./dM9gtpfHBOny'),

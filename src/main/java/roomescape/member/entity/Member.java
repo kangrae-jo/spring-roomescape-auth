@@ -6,18 +6,24 @@ public class Member {
 
     private final Long id;
     private final String name;
+    private final Role role;
 
-    private Member(Long id, String name) {
+    private Member(Long id, String name, Role role) {
         this.id = id;
         this.name = name;
+        this.role = role;
     }
 
     public static Member create(String name) {
-        return new Member(null, name);
+        return new Member(null, name, Role.GUEST);
     }
 
     public static Member of(Long id, String name) {
-        return new Member(id, name);
+        return new Member(id, name, Role.GUEST);
+    }
+
+    public static Member of(Long id, String name, Role role) {
+        return new Member(id, name, role);
     }
 
     public Long getId() {
@@ -26,6 +32,10 @@ public class Member {
 
     public String getName() {
         return name;
+    }
+
+    public Role getRole() {
+        return role;
     }
 
     @Override

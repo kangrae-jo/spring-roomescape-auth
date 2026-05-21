@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository;
 import roomescape.common.exception.DomainType;
 import roomescape.common.exception.DuplicatedException;
 import roomescape.member.entity.Member;
+import roomescape.member.entity.Role;
 
 @Repository
 public class JdbcMemberRepository implements MemberRepository {
@@ -26,14 +27,15 @@ public class JdbcMemberRepository implements MemberRepository {
     private final RowMapper<Member> memberRowMapper = (rs, rowNum) ->
             Member.of(
                     rs.getLong("id"),
-                    rs.getString("name")
+                    rs.getString("name"),
+                    Role.valueOf(rs.getString("role"))
             );
 
     @Override
     public Member save(Member member) {
         String sql = """
-                INSERT INTO member (name)
-                VALUES (?)
+                INSERT INTO member (name, role)
+                VALUES (?, ?)
                 """;
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
@@ -41,6 +43,7 @@ public class JdbcMemberRepository implements MemberRepository {
             jdbcTemplate.update(connection -> {
                 PreparedStatement ps = connection.prepareStatement(sql, new String[]{"id"});
                 ps.setString(1, member.getName());
+                ps.setString(2, member.getRole().name());
                 return ps;
             }, keyHolder);
         } catch (DuplicateKeyException e) {
@@ -48,19 +51,19 @@ public class JdbcMemberRepository implements MemberRepository {
         }
 
         Long id = Objects.requireNonNull(keyHolder.getKey()).longValue();
-        return Member.of(id, member.getName());
+        return Member.of(id, member.getName(), member.getRole());
     }
 
     @Override
     public Optional<Member> findById(Long id) {
-        String sql = "SELECT id, name FROM member WHERE id = ?";
+        String sql = "SELECT id, name, role FROM member WHERE id = ?";
         List<Member> result = jdbcTemplate.query(sql, memberRowMapper, id);
         return result.stream().findFirst();
     }
 
     @Override
     public Optional<Member> findByName(String name) {
-        String sql = "SELECT id, name FROM member WHERE name = ?";
+        String sql = "SELECT id, name, role FROM member WHERE name = ?";
         List<Member> result = jdbcTemplate.query(sql, memberRowMapper, name);
         return result.stream().findFirst();
     }

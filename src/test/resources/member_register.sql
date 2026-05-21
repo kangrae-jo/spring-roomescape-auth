@@ -17,8 +17,8 @@ ALTER TABLE theme
 ALTER TABLE member
     ALTER COLUMN id RESTART WITH 1;
 
-INSERT INTO member (name)
-VALUES ('milan');
+INSERT INTO member (name, role)
+VALUES ('milan', 'ADMIN');
 
 INSERT INTO auth_credential (member_id, password_hash)
 VALUES (1, '$2y$10$BdKb4loIDkFnStCRLEo0muqSu/mGmTq63hZbG1O./dM9gtpfHBOny');

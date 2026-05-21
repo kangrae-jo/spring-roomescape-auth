@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository;
 import roomescape.common.exception.DomainType;
 import roomescape.common.exception.InUseException;
 import roomescape.member.entity.Member;
+import roomescape.member.entity.Role;
 import roomescape.store.entity.Store;
 
 @Repository
@@ -22,7 +23,8 @@ public class JdbcStoreRepository implements StoreRepository {
             SELECT
                 s.id AS store_id,
                 m.id AS member_id,
-                m.name AS member_name
+                m.name AS member_name,
+                m.role AS member_role
             FROM store s
             INNER JOIN member m
                 ON s.member_id = m.id
@@ -34,7 +36,8 @@ public class JdbcStoreRepository implements StoreRepository {
                     rs.getLong("store_id"),
                     Member.of(
                             rs.getLong("member_id"),
-                            rs.getString("member_name")
+                            rs.getString("member_name"),
+                            Role.valueOf(rs.getString("member_role"))
                     )
             );
 
