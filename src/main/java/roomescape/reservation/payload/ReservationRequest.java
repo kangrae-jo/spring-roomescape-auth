@@ -9,6 +9,8 @@ public record ReservationRequest(
         @NotNull(message = "예약 시간id는 필수입니다.")
         Long timeId,
         @NotNull(message = "테마 id는 필수입니다.")
-        Long themeId
+        Long themeId,
+        @NotNull(message = "매장 id는 필수입니다.")
+        Long storeId
 ) {
 }

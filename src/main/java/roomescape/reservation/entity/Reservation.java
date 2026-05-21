@@ -3,6 +3,7 @@ package roomescape.reservation.entity;
 import java.time.LocalDate;
 import java.util.Objects;
 import roomescape.reservationtime.entity.ReservationTime;
+import roomescape.store.entity.Store;
 import roomescape.theme.entity.Theme;
 
 public class Reservation {
@@ -12,21 +13,23 @@ public class Reservation {
     private final LocalDate date;
     private final ReservationTime time;
     private final Theme theme;
+    private final Store store;
 
-    private Reservation(Long id, String name, LocalDate date, ReservationTime time, Theme theme) {
+    private Reservation(Long id, String name, LocalDate date, ReservationTime time, Theme theme, Store store) {
         this.id = id;
         this.name = name;
         this.date = date;
         this.time = time;
         this.theme = theme;
+        this.store = store;
     }
 
-    public static Reservation create(String name, LocalDate date, ReservationTime time, Theme theme) {
-        return new Reservation(null, name, date, time, theme);
+    public static Reservation create(String name, LocalDate date, ReservationTime time, Theme theme, Store store) {
+        return new Reservation(null, name, date, time, theme, store);
     }
 
-    public static Reservation of(Long id, String name, LocalDate date, ReservationTime time, Theme theme) {
-        return new Reservation(id, name, date, time, theme);
+    public static Reservation of(Long id, String name, LocalDate date, ReservationTime time, Theme theme, Store store) {
+        return new Reservation(id, name, date, time, theme, store);
     }
 
     public boolean isOwner(String name) {
@@ -51,6 +54,10 @@ public class Reservation {
 
     public Theme getTheme() {
         return theme;
+    }
+
+    public Store getStore() {
+        return store;
     }
 
     @Override

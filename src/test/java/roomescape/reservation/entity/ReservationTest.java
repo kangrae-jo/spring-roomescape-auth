@@ -5,7 +5,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import org.junit.jupiter.api.Test;
+import roomescape.member.entity.Member;
 import roomescape.reservationtime.entity.ReservationTime;
+import roomescape.store.entity.Store;
 import roomescape.theme.entity.Theme;
 
 class ReservationTest {
@@ -42,7 +44,8 @@ class ReservationTest {
                 name,
                 LocalDate.of(2026, 5, 10),
                 ReservationTime.of(1L, LocalTime.of(10, 0)),
-                Theme.of(1L, "테마", "테마 설명", "https://example.com/theme.png", Theme.RUNTIME)
+                Theme.of(1L, "테마", "테마 설명", "https://example.com/theme.png", Theme.RUNTIME),
+                Store.of(1L, Member.of(1L, "manager"))
         );
     }
 

@@ -17,6 +17,8 @@ import roomescape.reservation.payload.ReservationUpdateRequest;
 import roomescape.reservation.repository.ReservationRepository;
 import roomescape.reservationtime.entity.ReservationTime;
 import roomescape.reservationtime.service.ReservationTimeService;
+import roomescape.store.entity.Store;
+import roomescape.store.service.StoreService;
 import roomescape.theme.entity.Theme;
 import roomescape.theme.service.ThemeService;
 
@@ -26,17 +28,20 @@ public class ReservationService {
     private final ReservationRepository reservationRepository;
     private final ReservationTimeService reservationTimeService;
     private final ThemeService themeService;
+    private final StoreService storeService;
     private final Clock clock;
 
     public ReservationService(
             ReservationRepository reservationRepository,
             ReservationTimeService reservationTimeService,
             ThemeService themeService,
+            StoreService storeService,
             Clock clock
     ) {
         this.reservationRepository = reservationRepository;
         this.reservationTimeService = reservationTimeService;
         this.themeService = themeService;
+        this.storeService = storeService;
         this.clock = clock;
     }
 
@@ -46,12 +51,14 @@ public class ReservationService {
         validatePastReservation(request.date(), reservationTime.getStartAt());
 
         Theme theme = themeService.getById(request.themeId());
+        Store store = storeService.getById(request.storeId());
 
         Reservation reservation = Reservation.create(
                 name,
                 request.date(),
                 reservationTime,
-                theme
+                theme,
+                store
         );
         return reservationRepository.save(reservation);
     }

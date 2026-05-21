@@ -6,11 +6,14 @@ import java.time.LocalTime;
 import java.util.Map;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import roomescape.auth.JwtTokenProvider;
+import roomescape.member.entity.Member;
 import roomescape.reservation.entity.Reservation;
 import roomescape.reservation.payload.ReservationRequest;
 import roomescape.reservation.payload.ReservationUpdateRequest;
 import roomescape.reservationtime.entity.ReservationTime;
 import roomescape.reservationtime.payload.ReservationTimeRequest;
+import roomescape.store.entity.Store;
+import roomescape.store.payload.StoreRequest;
 import roomescape.theme.entity.Theme;
 import roomescape.theme.payload.ThemeRequest;
 
@@ -42,7 +45,16 @@ public final class TestFixture {
             Long timeId,
             Long themeId
     ) {
-        return new ReservationRequest(date, timeId, themeId);
+        return reservationRequest(date, timeId, themeId, 1L);
+    }
+
+    public static ReservationRequest reservationRequest(
+            LocalDate date,
+            Long timeId,
+            Long themeId,
+            Long storeId
+    ) {
+        return new ReservationRequest(date, timeId, themeId, storeId);
     }
 
     public static ReservationUpdateRequest reservationupdateRequest(
@@ -58,7 +70,29 @@ public final class TestFixture {
             ReservationTime reservationTime,
             Theme theme
     ) {
-        return Reservation.create(name, date, reservationTime, theme);
+        return reservation(name, date, reservationTime, theme, Store.of(1L, Member.of(1L, "manager")));
+    }
+
+    public static Reservation reservation(
+            String name,
+            LocalDate date,
+            ReservationTime reservationTime,
+            Theme theme,
+            Store store
+    ) {
+        return Reservation.create(name, date, reservationTime, theme, store);
+    }
+
+    public static Member member(String name) {
+        return Member.create(name);
+    }
+
+    public static Store store(Member manager) {
+        return Store.create(manager);
+    }
+
+    public static StoreRequest storeRequest(Long memberId) {
+        return new StoreRequest(memberId);
     }
 
     public static Map<String, Object> themeRequestBody(String name, String description, String thumbnailUrl) {
@@ -74,10 +108,20 @@ public final class TestFixture {
     }
 
     public static Map<String, Object> reservationRequestBody(LocalDate date, Long timeId, Long themeId) {
+        return reservationRequestBody(date, timeId, themeId, 1L);
+    }
+
+    public static Map<String, Object> reservationRequestBody(
+            LocalDate date,
+            Long timeId,
+            Long themeId,
+            Long storeId
+    ) {
         return Map.of(
                 "date", date.toString(),
                 "timeId", timeId,
-                "themeId", themeId
+                "themeId", themeId,
+                "storeId", storeId
         );
     }
 

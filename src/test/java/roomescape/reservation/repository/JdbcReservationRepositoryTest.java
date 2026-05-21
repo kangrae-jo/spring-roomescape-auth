@@ -2,24 +2,33 @@ package roomescape.reservation.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static roomescape.config.TestFixture.futureReservationDate;
+import static roomescape.config.TestFixture.member;
 import static roomescape.config.TestFixture.nextReservationDate;
 import static roomescape.config.TestFixture.reservation;
 import static roomescape.config.TestFixture.reservationTime;
+import static roomescape.config.TestFixture.store;
 import static roomescape.config.TestFixture.theme;
 
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
 import roomescape.config.FixedClockTestConfig;
+import roomescape.member.entity.Member;
+import roomescape.member.repository.JdbcMemberRepository;
+import roomescape.member.repository.MemberRepository;
 import roomescape.reservation.entity.Reservation;
 import roomescape.reservationtime.entity.ReservationTime;
 import roomescape.reservationtime.repository.JdbcReservationTimeRepository;
 import roomescape.reservationtime.repository.ReservationTimeRepository;
+import roomescape.store.entity.Store;
+import roomescape.store.repository.JdbcStoreRepository;
+import roomescape.store.repository.StoreRepository;
 import roomescape.theme.entity.Theme;
 import roomescape.theme.repository.JdbcThemeRepository;
 import roomescape.theme.repository.ThemeRepository;
@@ -29,6 +38,8 @@ import roomescape.theme.repository.ThemeRepository;
         JdbcReservationRepository.class,
         JdbcReservationTimeRepository.class,
         JdbcThemeRepository.class,
+        JdbcMemberRepository.class,
+        JdbcStoreRepository.class,
         FixedClockTestConfig.class
 })
 class JdbcReservationRepositoryTest {
@@ -50,6 +61,29 @@ class JdbcReservationRepositoryTest {
 
     @Autowired
     private ThemeRepository themeRepository;
+
+    @Autowired
+    private MemberRepository memberRepository;
+
+    @Autowired
+    private StoreRepository storeRepository;
+
+    private Store store;
+
+    @BeforeEach
+    void setUp() {
+        Member manager = memberRepository.save(member("manager-" + System.nanoTime()));
+        store = storeRepository.save(store(manager));
+    }
+
+    private Reservation reservation(
+            String name,
+            LocalDate date,
+            ReservationTime reservationTime,
+            Theme theme
+    ) {
+        return roomescape.config.TestFixture.reservation(name, date, reservationTime, theme, store);
+    }
 
     @Test
     void 예약을_저장하는_테스트() {

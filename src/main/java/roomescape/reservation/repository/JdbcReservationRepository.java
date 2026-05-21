@@ -15,8 +15,10 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import roomescape.common.exception.DomainType;
 import roomescape.common.exception.DuplicatedException;
+import roomescape.member.entity.Member;
 import roomescape.reservation.entity.Reservation;
 import roomescape.reservationtime.entity.ReservationTime;
+import roomescape.store.entity.Store;
 import roomescape.theme.entity.Theme;
 
 @Repository
@@ -33,12 +35,19 @@ public class JdbcReservationRepository implements ReservationRepository {
                 t.name AS theme_name,
                 t.description,
                 t.thumbnail_url,
-                t.runtime
+                t.runtime,
+                s.id AS store_id,
+                m.id AS manager_id,
+                m.name AS manager_name
             FROM reservation r
             INNER JOIN reservation_time rt
                 ON r.time_id = rt.id
             INNER JOIN theme t
                 ON r.theme_id = t.id
+            INNER JOIN store s
+                ON r.store_id = s.id
+            INNER JOIN member m
+                ON s.member_id = m.id
             """;
 
     private final JdbcTemplate jdbcTemplate;
@@ -57,6 +66,13 @@ public class JdbcReservationRepository implements ReservationRepository {
                             rs.getString("description"),
                             rs.getString("thumbnail_url"),
                             Duration.ofMinutes(rs.getLong("runtime"))
+                    ),
+                    Store.of(
+                            rs.getLong("store_id"),
+                            Member.of(
+                                    rs.getLong("manager_id"),
+                                    rs.getString("manager_name")
+                            )
                     )
             );
 
@@ -66,7 +82,7 @@ public class JdbcReservationRepository implements ReservationRepository {
 
     @Override
     public Reservation save(Reservation reservation) {
-        String sql = "INSERT INTO reservation (name, date, time_id, theme_id) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO reservation (name, date, time_id, theme_id, store_id) VALUES (?, ?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         try {
@@ -76,6 +92,7 @@ public class JdbcReservationRepository implements ReservationRepository {
                 ps.setObject(2, reservation.getDate());
                 ps.setLong(3, reservation.getTime().getId());
                 ps.setLong(4, reservation.getTheme().getId());
+                ps.setLong(5, reservation.getStore().getId());
                 return ps;
             }, keyHolder);
         } catch (DuplicateKeyException e) {
@@ -83,7 +100,8 @@ public class JdbcReservationRepository implements ReservationRepository {
                     DomainType.RESERVATION,
                     reservation.getDate(),
                     reservation.getTime().getId(),
-                    reservation.getTheme().getId()
+                    reservation.getTheme().getId(),
+                    reservation.getStore().getId()
             );
         }
 
@@ -93,7 +111,8 @@ public class JdbcReservationRepository implements ReservationRepository {
                 reservation.getName(),
                 reservation.getDate(),
                 reservation.getTime(),
-                reservation.getTheme()
+                reservation.getTheme(),
+                reservation.getStore()
         );
     }
 
@@ -117,7 +136,8 @@ public class JdbcReservationRepository implements ReservationRepository {
                     DomainType.RESERVATION,
                     date,
                     reservationTime.getId(),
-                    reservation.getTheme().getId()
+                    reservation.getTheme().getId(),
+                    reservation.getStore().getId()
             );
         }
 
@@ -126,7 +146,8 @@ public class JdbcReservationRepository implements ReservationRepository {
                 reservation.getName(),
                 date,
                 reservationTime,
-                reservation.getTheme()
+                reservation.getTheme(),
+                reservation.getStore()
         );
     }
 

@@ -3,14 +3,17 @@ package roomescape.reservationtime.repository;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static roomescape.config.TestFixture.futureReservationDate;
+import static roomescape.config.TestFixture.member;
 import static roomescape.config.TestFixture.reservation;
 import static roomescape.config.TestFixture.reservationTime;
+import static roomescape.config.TestFixture.store;
 import static roomescape.config.TestFixture.theme;
 
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
@@ -20,10 +23,16 @@ import roomescape.common.exception.DuplicatedException;
 import roomescape.common.exception.InUseException;
 import roomescape.common.exception.NotFoundException;
 import roomescape.config.FixedClockTestConfig;
+import roomescape.member.entity.Member;
+import roomescape.member.repository.JdbcMemberRepository;
+import roomescape.member.repository.MemberRepository;
 import roomescape.reservation.entity.Reservation;
 import roomescape.reservation.repository.JdbcReservationRepository;
 import roomescape.reservation.repository.ReservationRepository;
 import roomescape.reservationtime.entity.ReservationTime;
+import roomescape.store.entity.Store;
+import roomescape.store.repository.JdbcStoreRepository;
+import roomescape.store.repository.StoreRepository;
 import roomescape.theme.entity.Theme;
 import roomescape.theme.repository.JdbcThemeRepository;
 import roomescape.theme.repository.ThemeRepository;
@@ -33,6 +42,8 @@ import roomescape.theme.repository.ThemeRepository;
         JdbcReservationTimeRepository.class,
         JdbcReservationRepository.class,
         JdbcThemeRepository.class,
+        JdbcMemberRepository.class,
+        JdbcStoreRepository.class,
         FixedClockTestConfig.class
 })
 class JdbcReservationTimeRepositoryTest {
@@ -56,6 +67,29 @@ class JdbcReservationTimeRepositoryTest {
 
     @Autowired
     private ThemeRepository themeRepository;
+
+    @Autowired
+    private MemberRepository memberRepository;
+
+    @Autowired
+    private StoreRepository storeRepository;
+
+    private Store store;
+
+    @BeforeEach
+    void setUp() {
+        Member manager = memberRepository.save(member("manager-" + System.nanoTime()));
+        store = storeRepository.save(store(manager));
+    }
+
+    private Reservation reservation(
+            String name,
+            LocalDate date,
+            ReservationTime reservationTime,
+            Theme theme
+    ) {
+        return roomescape.config.TestFixture.reservation(name, date, reservationTime, theme, store);
+    }
 
     @Test
     void 예약_시간을_저장하는_테스트() {
@@ -141,7 +175,11 @@ class JdbcReservationTimeRepositoryTest {
 
         // when
         List<ReservationTime> availableTimes =
-                reservationTimeRepository.findAvailableTimesByDateAndThemeId(reservationDate, theme.getId());
+                reservationTimeRepository.findAvailableTimesByDateAndThemeIdAndStoreId(
+                        reservationDate,
+                        theme.getId(),
+                        store.getId()
+                );
 
         // then
         assertThat(availableTimes)

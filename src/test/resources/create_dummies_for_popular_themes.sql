@@ -2,6 +2,15 @@ DELETE
 FROM reservation;
 
 DELETE
+FROM store;
+
+DELETE
+FROM auth_credential;
+
+DELETE
+FROM member;
+
+DELETE
 FROM reservation_time;
 
 ALTER TABLE reservation_time
@@ -35,32 +44,44 @@ VALUES ('테마1', '테마1 설명', 'https://example.com/themes/theme-1.png', 6
        ('테마14', '테마14 설명', 'https://example.com/themes/theme-14.png', 60),
        ('테마15', '테마15 설명', 'https://example.com/themes/theme-15.png', 60);
 
+ALTER TABLE member
+    ALTER COLUMN id RESTART WITH 1;
+
+INSERT INTO member (name)
+VALUES ('manager');
+
+ALTER TABLE store
+    ALTER COLUMN id RESTART WITH 1;
+
+INSERT INTO store (member_id)
+VALUES (1);
+
 ALTER TABLE reservation
     ALTER COLUMN id RESTART WITH 1;
 
-INSERT INTO reservation (name, date, time_id, theme_id)
+INSERT INTO reservation (name, date, time_id, theme_id, store_id)
 VALUES
     -- 테마1: 1개
-    ('예약자1', '2026-05-01', 1, 1),
+    ('예약자1', '2026-05-01', 1, 1, 1),
 
     -- 테마2: 2개
-    ('예약자2', '2026-05-01', 1, 2),
-    ('예약자3', '2026-05-01', 2, 2),
+    ('예약자2', '2026-05-01', 1, 2, 1),
+    ('예약자3', '2026-05-01', 2, 2, 1),
 
     -- 테마3: 3개
-    ('예약자4', '2026-05-01', 1, 3),
-    ('예약자5', '2026-05-01', 2, 3),
-    ('예약자6', '2026-05-01', 3, 3),
+    ('예약자4', '2026-05-01', 1, 3, 1),
+    ('예약자5', '2026-05-01', 2, 3, 1),
+    ('예약자6', '2026-05-01', 3, 3, 1),
 
     -- 테마4: 4개
-    ('예약자7', '2026-05-01', 1, 4),
-    ('예약자8', '2026-05-01', 2, 4),
-    ('예약자9', '2026-05-01', 3, 4),
-    ('예약자10', '2026-05-02', 1, 4),
+    ('예약자7', '2026-05-01', 1, 4, 1),
+    ('예약자8', '2026-05-01', 2, 4, 1),
+    ('예약자9', '2026-05-01', 3, 4, 1),
+    ('예약자10', '2026-05-02', 1, 4, 1),
 
     -- 테마5: 5개
-    ('예약자11', '2026-05-01', 1, 5),
-    ('예약자12', '2026-05-01', 2, 5),
-    ('예약자13', '2026-05-01', 3, 5),
-    ('예약자14', '2026-05-02', 1, 5),
-    ('예약자15', '2026-05-02', 2, 5);
+    ('예약자11', '2026-05-01', 1, 5, 1),
+    ('예약자12', '2026-05-01', 2, 5, 1),
+    ('예약자13', '2026-05-01', 3, 5, 1),
+    ('예약자14', '2026-05-02', 1, 5, 1),
+    ('예약자15', '2026-05-02', 2, 5, 1);

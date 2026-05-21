@@ -8,12 +8,14 @@ import static roomescape.config.TestFixture.pastReservationDate;
 import static roomescape.config.TestFixture.reservationRequest;
 import static roomescape.config.TestFixture.reservationTimeRequest;
 import static roomescape.config.TestFixture.reservationupdateRequest;
+import static roomescape.config.TestFixture.storeRequest;
 import static roomescape.config.TestFixture.themeRequest;
 
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,10 +24,14 @@ import roomescape.common.exception.AccessDeniedException;
 import roomescape.common.exception.DuplicatedException;
 import roomescape.common.exception.NotFoundException;
 import roomescape.common.exception.PastDateTimeException;
+import roomescape.member.entity.Member;
+import roomescape.member.repository.MemberRepository;
 import roomescape.reservation.entity.Reservation;
 import roomescape.reservation.payload.ReservationRequest;
 import roomescape.reservationtime.entity.ReservationTime;
 import roomescape.reservationtime.service.ReservationTimeService;
+import roomescape.store.entity.Store;
+import roomescape.store.service.StoreService;
 import roomescape.theme.entity.Theme;
 import roomescape.theme.service.ThemeService;
 
@@ -52,6 +58,24 @@ class ReservationServiceTest {
 
     @Autowired
     private ThemeService themeService;
+
+    @Autowired
+    private StoreService storeService;
+
+    @Autowired
+    private MemberRepository memberRepository;
+
+    private Store store;
+
+    @BeforeEach
+    void setUp() {
+        Member manager = memberRepository.save(Member.create("manager-" + System.nanoTime()));
+        store = storeService.save(storeRequest(manager.getId()));
+    }
+
+    private ReservationRequest reservationRequest(LocalDate date, Long timeId, Long themeId) {
+        return roomescape.config.TestFixture.reservationRequest(date, timeId, themeId, store.getId());
+    }
 
     @Test
     void 예약요청을_올바르게_저장하는지_확인하는_테스트() {

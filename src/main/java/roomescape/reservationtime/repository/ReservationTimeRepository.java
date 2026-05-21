@@ -13,7 +13,7 @@ public interface ReservationTimeRepository {
 
     List<ReservationTime> findAll();
 
-    List<ReservationTime> findAvailableTimesByDateAndThemeId(LocalDate date, Long themeId);
+    List<ReservationTime> findAvailableTimesByDateAndThemeIdAndStoreId(LocalDate date, Long themeId, Long storeId);
 
     int deleteById(Long id);
 

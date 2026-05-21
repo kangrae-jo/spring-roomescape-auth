@@ -66,7 +66,7 @@ public class JdbcReservationTimeRepository implements ReservationTimeRepository 
     }
 
     @Override
-    public List<ReservationTime> findAvailableTimesByDateAndThemeId(LocalDate date, Long themeId) {
+    public List<ReservationTime> findAvailableTimesByDateAndThemeIdAndStoreId(LocalDate date, Long themeId, Long storeId) {
         String sql = """
                 SELECT rt.id, rt.start_at
                 FROM reservation_time rt
@@ -75,12 +75,13 @@ public class JdbcReservationTimeRepository implements ReservationTimeRepository 
                     FROM reservation r
                     WHERE r.date = ?
                       AND r.theme_id = ?
+                      AND r.store_id = ?
                       AND r.time_id = rt.id
                 )
                 ORDER BY rt.id
                 """;
 
-        return jdbcTemplate.query(sql, reservationTimeRowMapper, date, themeId);
+        return jdbcTemplate.query(sql, reservationTimeRowMapper, date, themeId, storeId);
     }
 
     @Override

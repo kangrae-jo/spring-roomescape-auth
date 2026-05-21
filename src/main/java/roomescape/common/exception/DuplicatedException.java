@@ -17,6 +17,12 @@ public final class DuplicatedException extends BusinessException {
         );
     }
 
+    public DuplicatedException(DomainType domainType, LocalDate date, Long timeId, Long themeId, Long storeId) {
+        super(clientMessage(domainType),
+                logMessage(domainType, date, timeId, themeId, storeId)
+        );
+    }
+
     public DuplicatedException(DomainType domainType, LocalTime time) {
         super(clientMessage(domainType),
                 logMessage(domainType, time)
@@ -34,6 +40,11 @@ public final class DuplicatedException extends BusinessException {
     private static String logMessage(DomainType domainType, LocalDate date, Long timeId, Long themeId) {
         return "Duplicated domain=%s, date=%s, timeId=%d, themeId=%d"
                 .formatted(domainType.name(), date, timeId, themeId);
+    }
+
+    private static String logMessage(DomainType domainType, LocalDate date, Long timeId, Long themeId, Long storeId) {
+        return "Duplicated domain=%s, date=%s, timeId=%d, themeId=%d, storeId=%d"
+                .formatted(domainType.name(), date, timeId, themeId, storeId);
     }
 
     private static String logMessage(DomainType domainType, LocalTime time) {

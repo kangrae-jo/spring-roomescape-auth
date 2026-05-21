@@ -16,6 +16,10 @@ INSERT INTO auth_credential (member_id, password_hash)
 VALUES (1, '$2y$10$BdKb4loIDkFnStCRLEo0muqSu/mGmTq63hZbG1O./dM9gtpfHBOny'),
        (2, '$2y$10$BdKb4loIDkFnStCRLEo0muqSu/mGmTq63hZbG1O./dM9gtpfHBOny');
 
-INSERT INTO reservation (name, date, time_id, theme_id)
-VALUES ('봉구스', '2026-05-06', 1, 1),
-       ('밀란', '2026-05-07', 2, 2);
+INSERT INTO store (member_id)
+VALUES (1),
+       (2);
+
+INSERT INTO reservation (name, date, time_id, theme_id, store_id)
+VALUES ('봉구스', '2026-05-06', 1, 1, 1),
+       ('밀란', '2026-05-07', 2, 2, 2);

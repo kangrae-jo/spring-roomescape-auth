@@ -40,6 +40,7 @@ public class AuthenticationPrincipalConfig implements WebMvcConfigurer {
                 .excludePathPatterns(
                         "/auth/register",
                         "/auth/login",
+                        "/stores",
                         "/times/**",
                         "/themes/**"
                 );

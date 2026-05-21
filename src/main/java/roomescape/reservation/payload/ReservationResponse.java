@@ -3,6 +3,7 @@ package roomescape.reservation.payload;
 import java.time.LocalDate;
 import roomescape.reservation.entity.Reservation;
 import roomescape.reservationtime.payload.ReservationTimeResponse;
+import roomescape.store.payload.StoreResponse;
 import roomescape.theme.payload.ThemeResponse;
 
 public record ReservationResponse(
@@ -10,7 +11,8 @@ public record ReservationResponse(
         String name,
         LocalDate date,
         ReservationTimeResponse time,
-        ThemeResponse theme
+        ThemeResponse theme,
+        StoreResponse store
 ) {
 
     public static ReservationResponse from(Reservation reservation) {
@@ -19,7 +21,8 @@ public record ReservationResponse(
                 reservation.getName(),
                 reservation.getDate(),
                 ReservationTimeResponse.from(reservation.getTime()),
-                ThemeResponse.from(reservation.getTheme())
+                ThemeResponse.from(reservation.getTheme()),
+                StoreResponse.from(reservation.getStore())
         );
     }
 
